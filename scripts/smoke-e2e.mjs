@@ -7,6 +7,10 @@ import path from "node:path";
 
 const BASE = process.env.BASE_URL ?? "http://127.0.0.1:3000";
 const PACK_DIR = path.join(process.cwd(), "public", "samples", "ashford");
+// Against a deployment without a chain set SMOKE_CHAIN=0; SMOKE_TAMPER=0 skips the tamper step
+// (it permanently marks the ledger as tampered, which you don't want on a shared deployment).
+const CHAIN = process.env.SMOKE_CHAIN !== "0";
+const TAMPER = process.env.SMOKE_TAMPER !== "0";
 // Claude mode makes several model calls per run; raise with SMOKE_TIMEOUT_MS if needed.
 const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS ?? 90_000);
 
@@ -43,8 +47,13 @@ async function waitFor(fn, label) {
 
 async function main() {
   console.log(`DisputeOS E2E smoke test → ${BASE}`);
-  await waitFor(async () => (await call("/api/system")).chain.connected, "chain connection");
-  assert(true, "app is up and connected to the AuditLog contract");
+  if (CHAIN) {
+    await waitFor(async () => (await call("/api/system")).chain.connected, "chain connection");
+    assert(true, "app is up and connected to the AuditLog contract");
+  } else {
+    await call("/api/system");
+    assert(true, "app is up (chain checks skipped)");
+  }
 
   const { files } = JSON.parse(fs.readFileSync(path.join(PACK_DIR, "manifest.json"), "utf8"));
   const form = new FormData();
@@ -99,11 +108,20 @@ async function main() {
   state = await call(`/api/cases/${CASE_ID}`);
   assert(state.run.status === "completed" && state.case.status === "resolved", "negotiation settled and the case resolved");
 
-  const clean = await waitFor(async () => {
-    const r = await call("/api/ledger/verify", { method: "POST", body: "{}" });
-    return r.ok && r.chain.onChainCount === r.checked ? r : null;
-  }, "all entries anchored");
-  assert(clean.ok, `ledger verified: ${clean.checked} entries match on-chain anchors`);
+  if (CHAIN) {
+    const clean = await waitFor(async () => {
+      const r = await call("/api/ledger/verify", { method: "POST", body: "{}" });
+      return r.ok && r.chain.onChainCount === r.checked ? r : null;
+    }, "all entries anchored");
+    assert(clean.ok, `ledger verified: ${clean.checked} entries match on-chain anchors`);
+  } else {
+    const local = await call("/api/ledger/verify", { method: "POST", body: JSON.stringify({ caseId: CASE_ID }) });
+    assert(local.ok, `hash chain verified: ${local.checked} entries intact (chain offline)`);
+  }
+  if (!TAMPER) {
+    console.log("E2E smoke test passed (tamper step skipped).");
+    return;
+  }
 
   await call("/api/demo/tamper", { method: "POST", body: JSON.stringify({ caseId: CASE_ID }) });
   const tampered = await call("/api/ledger/verify", { method: "POST", body: "{}" });
