@@ -1,6 +1,7 @@
 "use client";
 import { usePoll } from "./api";
 import { shortHash } from "./format";
+import { StatusBadge } from "./StatusBadge";
 
 export interface SystemStatus {
   engine: { mode: "claude" | "deterministic"; model: string | null };
@@ -15,19 +16,17 @@ export interface SystemStatus {
 
 export function SystemBar() {
   const { data } = usePoll<SystemStatus>("/api/system", 4000);
-  if (!data) return <span className="text-xs text-ink-3">Connecting…</span>;
+  if (!data) return <StatusBadge status="queued" label="connecting" />;
   return (
-    <div className="flex flex-wrap items-center gap-2 text-xs">
-      <span className="rounded-full border border-line px-2 py-1 text-ink-2" title={data.engine.model ?? "Rule-based engine (no API key)"}>
-        <span aria-hidden>🧠 </span>
-        {data.engine.mode === "claude" ? `Claude · ${data.engine.model}` : "Deterministic engine"}
+    <div className="flex flex-wrap items-center gap-5">
+      <span title={data.engine.model ?? "Rule-based engine (no API key)"}>
+        <StatusBadge status={data.engine.mode === "claude" ? "completed" : "open"} label={data.engine.mode === "claude" ? `claude · ${data.engine.model}` : "deterministic engine"} />
       </span>
-      <span
-        className={`rounded-full border px-2 py-1 ${data.chain.connected ? "border-good/40 text-good" : "border-warn/40 text-warn"}`}
-        title={data.chain.connected ? `Contract ${data.chain.contractAddress}` : (data.chain.error ?? "")}
-      >
-        <span aria-hidden>⛓ </span>
-        {data.chain.connected ? `${data.chain.network} · ${shortHash(data.chain.contractAddress)}` : "Chain offline — local hash chain only"}
+      <span title={data.chain.connected ? `Contract ${data.chain.contractAddress}` : (data.chain.error ?? "")}>
+        <StatusBadge
+          status={data.chain.connected ? "anchored" : "pending"}
+          label={data.chain.connected ? `${data.chain.network} · ${shortHash(data.chain.contractAddress)}` : "chain offline"}
+        />
       </span>
     </div>
   );

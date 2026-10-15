@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Nav } from "@/components/Nav";
 import { SystemBar } from "@/components/SystemBar";
+import { Logo } from "@/components/ui/icons";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,23 +15,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en-GB">
+    <html lang="en-GB" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="min-h-screen antialiased">
-        <header className="sticky top-0 z-20 border-b border-line bg-panel-2/80 backdrop-blur">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-6 px-6 py-3">
-            <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
-              <span aria-hidden className="grid h-7 w-7 place-items-center rounded-lg bg-accent text-sm">⚖</span>
-              DisputeOS
+        <div aria-hidden className="backdrop" />
+        <header className="sticky top-0 z-30 border-b border-line bg-bg/75 backdrop-blur-xl">
+          <div className="mx-auto flex h-12 max-w-[1400px] items-center gap-6 px-6">
+            <Link href="/" className="flex items-center gap-2.5 text-ink">
+              <Logo size={20} />
+              <span className="text-[14px] font-semibold tracking-[-0.02em]">DisputeOS</span>
             </Link>
-            <nav aria-label="Main" className="flex gap-4 text-sm text-ink-2">
-              <Link href="/" className="hover:text-ink">Cases</Link>
-              <Link href="/cases/new" className="hover:text-ink">New case</Link>
-              <Link href="/ledger" className="hover:text-ink">Audit ledger</Link>
-            </nav>
-            <div className="ml-auto"><SystemBar /></div>
+            <span aria-hidden className="h-4 w-px bg-line-2" />
+            <Nav />
+            <div className="ml-auto hidden md:block"><SystemBar /></div>
           </div>
         </header>
-        <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
+        <main className="mx-auto max-w-[1400px] px-6 py-10">{children}</main>
       </body>
     </html>
   );
