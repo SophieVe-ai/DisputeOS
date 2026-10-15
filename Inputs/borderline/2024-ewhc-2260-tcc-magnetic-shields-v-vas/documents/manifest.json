@@ -1,0 +1,14 @@
+{
+  "name": "Vacuum and Atmosphere Services v Magnetic Shields",
+  "description": "Replacement heating elements and CVE furnace service work invoiced at £2,196.78 and £902.40; the customer refuses to pay, calling the service work warranty work and relying on its complaints about VAS's defective refurbishment of its Abar furnace.",
+  "files": [
+    "01-purchase-order-heating-elements.txt",
+    "02-delivery-note-heating-elements.txt",
+    "03-invoice-18751.txt",
+    "04-purchase-order-cve-furnace-work.txt",
+    "05-delivery-record-cve-furnace-work.txt",
+    "06-invoice-18908.txt",
+    "07-email-from-vas-chasing-invoices.eml",
+    "08-email-from-msl-refusing.eml"
+  ]
+}

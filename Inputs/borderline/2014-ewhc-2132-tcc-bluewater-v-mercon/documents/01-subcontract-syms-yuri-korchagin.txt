@@ -1,0 +1,25 @@
+SUBCONTRACT FOR THE SOFT YOKE MOORING SYSTEM
+Contract reference: not stated
+Contract date: 2007-03-26
+Supplier: Mercon Steel Structures BV
+Customer: Bluewater Energy Services BV
+Currency: EUR
+Payment terms: not stated
+Scope: fabrication of a tower based soft yoke mooring system (SYMS) for the Yuri Korchagin Field in the Caspian Sea. Part of the work is paid on a lump sum price, part is re-measured and part is reimbursable.
+Pricing:
+- Original Total Provisional Contract Price (lump sum, re-measured and reimbursable parts) | qty 1 | 10,468,233.37
+Within that price: provisional sum for re-measured work 5,373,670.68; provisional sum for reimbursable work 2,137,320.00.
+Options: Option 5 (transport from Gorinchem to Astrakhan and Baku) exercised 2007-03-29, later formalised as VO-005 granting extensions of 51 to 122 days to Milestones B4.1, B4.2 and B4.3.
+
+Clause 14.3(b): "If the CONTRACTOR fails to submit requests for VARIATIONS in accordance with Clause 14.3 (a) when it considers or should reasonably have considered than an occurrence has taken place for which it is entitled to receive a VARIATION and/or fails to provide supporting estimates in accordance with Clause 14.1, the CONTRACTOR shall, at the sole discretion of BLUEWATER, forfeit any right to receive such VARIATIONS and any rights concerning adjustment to the CONTRACT PRICE and/or SCHEDULE OF KEY DATES."
+Clause 14.4: within seven days the CONTRACTOR shall submit a "fully detailed estimate prepared on the basis as directed by BLUEWATER".
+Clause 25: "Consequential Loss" means "loss and/or deferral of production, loss of product, loss of use, loss of revenue, profit or anticipated profit (if any), in each case whether direct or indirect"; each party holds the other harmless from its own Consequential Loss.
+Clause 30.1: "Bluewater shall have the right by giving notice to terminate all or any part of the WORK or the CONTRACT ... (b) Subject only to Clause 30.2 in the event of any default on the part of the CONTRACTOR".
+Clause 30.2: "In the event of a default on the part of the CONTACTOR and before the issue by BLUEWATER of an order of termination of all or any part of the WORK of the CONTRACT, BLUEWATER shall give notice of default to the CONTRACTOR giving the details of such default. If the CONTRACTOR upon receipt of such notice does not immediately commence and thereafter continuously proceed with action satisfactory to BLUEWATER to remedy such default BLUEWATER may issue a notice of termination in accordance with the provisions of Clause 30.1."
+Clause 35.1(c): liquidated damages for late completion of Key Dates are capped at seven percent of the Total Contract Price.
+Signed: not stated (a Letter of Intent was signed by Mercon in December 2006)
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Bluewater v Mercon [2014] EWHC 2132 (TCC), paras 1-8, 49, 519, 641, 999, 1530, 1535.
+Large final-account case cut down to key documents; reference, terms of settlement and signatories not stated. Para 641 gives the original price as 10,468,223.37; para 1535 figure used.

@@ -1,0 +1,11 @@
+MILESTONE DELIVERY RECORD IMP-030
+Delivery date: 2017-01-01
+Site: not stated
+- IMP-030 Application Gate 5 - Application delivery phase 5 (IBM Software Products licences) | qty 1
+Signed by: not stated (Nominated Customer Approver: Customer Transformation Director; no milestone approval issued by CIS General Insurance)
+Condition notes: Roadmap Table A.1 latest delivery date "start January 2017". Not subject to Schedule 6 Acceptance; no direct predecessor milestone. IBM first requested a purchase order number for this milestone at the Commercial Management Group meeting on 2016-12-14; none was issued.
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: CIS General Insurance v IBM [2021] EWHC 347 (TCC), paras 10, 172, 223-232.
+No separate completion record is described; this is the Roadmap milestone entry. Date approximate (judgment gives "start January 2017"). CISGIL disputed that the milestone had been reached.

@@ -5,7 +5,19 @@ Reference cases for DisputeOS: real, fully resolved English court judgments wher
 - `judgment.pdf`: the published judgment from [The National Archives, Find Case Law](https://caselaw.nationalarchives.gov.uk/) (Open Justice Licence).
 - `commentary.md`: inputs (parties, documents mapped to DisputeOS document kinds, amounts, defences), outcome (decision on each defence, money result) and commentary (what decided it, how the DisputeOS agents should treat a similar case).
 
+- `documents/` (London cases): the case's key documents **reconstructed from the judgment** (contracts and purchase orders, delivery or performance records, invoices or statements of account, payments, and correspondence as `.eml`), plus a `manifest.json`. Same format as the app's sample packs in `public/samples/`, so a pack can be uploaded into DisputeOS and the agents' result compared with the court's.
+
 Commentaries were drafted by AI from the full judgment text, with paragraph references. Check figures against the judgment before relying on them.
+
+### About the reconstructed documents
+
+- **They are not the original documents.** Courts publish judgments, not trial bundles. Every file ends with a footer saying it is a reconstruction and citing the judgment paragraphs it is based on.
+- **Nothing is invented.** Figures, dates, numbers and quoted wording come from the judgment. Where the judgment is silent, files say `not stated`, use a single lump-sum line, or the document is left out; the footer says which. Email addresses are `.example` placeholders.
+- **Each pack is the creditor's file before the court ruled.** Court findings (for example, that a document was altered) appear only in footers.
+- **Where a judgment does not describe a document,** the pack may summarise a party's pleaded case as a letter (for example the debtor's defences in E-Nik and Addax); the footer says so.
+- **Large cases are cut down** to the disputed invoices and key correspondence, and some packs use a statement of account where individual invoices are not described.
+- **App limitations:** the app reads every amount as pounds. EUR and USD packs carry a `Currency:` field with the real currency, and the mixed GBP/EUR International Media Advertising pack totals incorrectly on upload. The app has no statement-of-account kind, so the statements in Ocean Healthcare and Gama upload as `other`. In CEP, the app picks the parent company as debtor; the money is owed by CEP Claddings.
+- Every pack was run through the app's own intake classifier (`src/lib/intake/classify.ts`): all other files classify as the intended document kind with confidence of at least 0.7.
 
 ## Selection
 

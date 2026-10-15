@@ -1,0 +1,31 @@
+SUPPLY AGREEMENT
+Contract reference: not stated
+Contract date: 2022-11-07
+Supplier: Procoll Ltd
+Customer: Trinsic Collagen Ltd
+Payment terms: 30 days from the date of Delivery (cl 14.2)
+Product: food grade bovine single alpha chain collagen, for use only within the Exclusive Fields (Recital B)
+Term: at least 20 years from the Commencement Date of 7 November 2022
+Minimum Purchase Amount: 5000 g per month, supplied on a standing order basis and made available for collection on the 28th of each month (cl 4.4, cl 7.1)
+Pricing:
+- Food grade bovine single alpha chain collagen, year 1 | qty 5000 | £6.00 per gram
+- Year 2 £7, year 3 £8, year 4 £9, year 5 £10 per gram (Schedule 1, cl 12.1)
+- Additional 1kg of Product free of charge with the first order (Schedule 1, para 4)
+Key terms:
+8.3 The Products supplied shall conform to the Specification; be fit for any purpose held out by Procoll, including being fit for human consumption for not less than 18 months following Delivery; and comply with the Regulation.
+8.8 Procoll shall ensure that each container of Products is tested by the Product Tester prior to delivery to the Delivery Location on the Delivery Date ("Product Testing"), and shall provide a copy of all Product Testing results to Trinsic.
+8.9 Procoll shall not sell, and Trinsic shall not be permitted to purchase, any Products that have not passed Product Testing.
+8.11 Replacement batch where Product fails Product Testing; Late Delivery Fee of 0.3% of the Product price per day of delay, up to a maximum of 10% of the total Product Price.
+9.5 Delivery is completed when Procoll places the Products which have passed Product Testing at Trinsic's disposal at the Delivery Location.
+9.8 If Trinsic does not collect an Order or Standing Order in time, Procoll may delay Delivery Dates for subsequent Orders by an equal time; Trinsic to pay in accordance with clauses 14.1 and 14.2 on their due date for payment.
+14.1 Procoll shall invoice Trinsic for each Standing Order or Order on Delivery. Each invoice shall quote the relevant Order Numbers.
+14.2 Trinsic shall pay invoices in full and in cleared funds within 30 days of the date of Delivery.
+14.5 All amounts due under the agreement shall be paid in full without any set-off, counterclaim, deduction or withholding.
+17.5 Procoll's total liability shall not exceed 100% of the Product Price paid by Trinsic in the 12 Months prior to the claim arising; 17.7.2 loss of profits, sales or business excluded (17.2: not for deliberate default; 17.3: payment obligations not limited).
+20.2 Procoll may suspend provision of Products if Trinsic fails to pay any amount due on the due date for payment.
+Specification (Schedule 2): total aerobic bacteria limit 10^3 per g; pH 7-9.
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Trinsic Collagen v Procoll [2026] EWHC 1793 (Ch), paras 1, 7, 26, 27, 29.
+Reference number and signatories not stated; clauses abridged from the judgment's quotations and summaries.

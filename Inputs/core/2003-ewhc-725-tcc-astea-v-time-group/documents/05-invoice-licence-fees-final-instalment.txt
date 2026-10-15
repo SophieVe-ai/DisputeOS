@@ -1,0 +1,14 @@
+INVOICE
+Invoice number: not stated
+Invoice date: 2000-08-24
+Due date: 2000-09-01
+Bill to: Time Group Ltd
+Reference: ServiceAlliance License and Support Agreement SA170400001
+- ServiceAlliance licence fees, final one-third instalment due on 1 September 2000 | qty 1 | £56,800.00
+- VAT at 17.5% | qty 1 | £9,940.00
+Total due: £66,740.00
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Astea (UK) Ltd v Time Group Ltd [2003] EWHC 725 (TCC), paras 27, 29, 68, 81.
+Number not stated; VAT split derived from the unpaid licence balance of £113,600 plus £19,880 VAT (para 29).

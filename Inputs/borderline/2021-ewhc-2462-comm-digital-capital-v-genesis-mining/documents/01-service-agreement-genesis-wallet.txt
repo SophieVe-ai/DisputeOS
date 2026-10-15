@@ -1,0 +1,29 @@
+SERVICE AGREEMENT
+Contract reference: not stated (Service Agreement, Genesis Wallet project)
+Contract date: 2017-01-12
+Supplier: Digital Capital Ltd
+Customer: Genesis Mining Iceland ehf
+Payment terms: 7 days from invoice (cl 8.2: "Fees due by the Client to Digital Capital will be paid 7 days from the date of the invoice or where the 7th day is not a Business Day, the first Business Day thereafter.")
+Pricing (Schedule 1):
+- Regulatory set-up fee | qty 1 | £800,000.00
+- Software set-up fee, payable by 15 January 2018 | qty 1 | £800,000.00
+- Monthly operational fees from 1 January 2018 (Appendix 1 point 3) | qty 1 | £175,000.00 per month
+- Monthly system maintenance fees from 1 February 2018 (Appendix 1 point 3) | qty 1 | £48,000.00 per month
+- Other costs related to the services and not covered above, whether incurred by Digital Capital or a third party provider
+Key terms:
+3.1(d) Digital Capital shall use its reasonable endeavours to ensure the Go Live Date is (subject to any applicable approvals from any Regulator and the Scheme) till 10th July 2018.
+3.1(f) Digital Capital shall exercise or procure the exercise of such reasonable care and skill in providing the Digital Capital Services as is expected of an experienced person engaged in a similar undertaking.
+4.2(e) The Client shall provide all reasonable assistance requested by Digital Capital to enable it to perform the Digital Capital Services.
+8.3 Save as expressly provided in this clause 8, the client shall not be entitled to make any deduction or offset any amounts from sums due to Digital Capital.
+13.1 Save in respect of any Fees due which are the subject of a bona fide dispute, Digital Capital reserves the right by written notice with immediate effect to suspend in whole or in part the performance of its obligations if any Fees or payment due to Digital Capital is not paid within five (5) Business Days of its due date.
+16.1 Either party may terminate this Agreement with immediate effect by notice on or after (a) a material breach by the other party which (if the breach is capable of remedy) the other party has failed to remedy within thirty (30) days after receipt of notice giving particulars of the breach and requiring the other party to do so.
+16.5 The rights to terminate given by this clause 16 will be without prejudice to any other right or remedy of either party in respect of the breach concerned (if any) or any other breach.
+16.6 Each party shall be entitled to receive any Fees due to it up to the date of termination, and will have the right to keep any fees paid up to the date of termination regardless of the reason for termination.
+19 Interest on overdue sums from the due date until the date of actual payment at 3% per annum above the UK bank base rate of Royal Bank of Scotland Plc, accruing on a daily basis and compounded quarterly.
+30.2 All conditions, warranties or other terms implied by statute or common law are hereby excluded to the fullest extent permitted by law.
+Signed: Mrs Dorotea Arlov (Digital Capital), Mr Dolić (Genesis Mining Iceland)
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Digital Capital Ltd v Genesis Mining Iceland ehf [2021] EWHC 2462 (Comm), paras 16, 19-20, 165, 193, 215 and Appendix A.
+Clause wording abridged from Appendix A; no reference number stated; the other-costs item has no stated figure.

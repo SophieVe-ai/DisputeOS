@@ -1,0 +1,16 @@
+INVOICE
+Invoice number: 17415813
+Invoice date: 2020-12-14
+Due date: 2020-12-14 (at sight)
+Bill to: Petro Trade Inc
+Currency: USD
+Contract reference: 7008356
+- Gasoil ex M/T Torm Tevere, 1,723.385 MT remaining at China Union, released 4 December 2020 (premium USD 53/MT) | qty 1 | 992,506.86
+- Less paid on account | qty 1 | -460,000.00
+Total due: USD 532,506.86
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Addax Energy SA v Petro Trade Inc [2023] EWHC 1609 (Comm), paras 1, 60-63, 107, 136.
+The original split the quantity into three parts (breakdown not stated). It was priced at a USD 53/MT premium; Addax later cut its claim to the USD 43/MT premium, giving USD 515,273.01.
+The USD 460,000 credit is the sum of transfers by Petro Trade: USD 40,000 on 28 January 2019, then USD 30,000 monthly to March 2020 (paras 58-59, 93); no separate record is included so it is not counted twice.

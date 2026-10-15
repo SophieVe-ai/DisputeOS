@@ -1,0 +1,16 @@
+{
+  "name": "Steni AS v CEP Holdings and CEP Claddings",
+  "description": "Steni cladding panels supplied under an exclusive distributor deal; CEP withheld EUR 18,508 over below-tolerance Aberfeldy panels and left 35 later invoices (EUR 216,900.52) unpaid after Steni terminated. Cut down to the key correspondence and a summary of the unpaid sums.",
+  "files": [
+    "01-exclusive-distributor-agreement-steni-cep.txt",
+    "02-purchase-order-aberfeldy-steni-colour.txt",
+    "03-email-from-cep-aberfeldy-sums-withheld.eml",
+    "04-email-from-steni-claims-unjustified.eml",
+    "05-email-from-steni-aberfeldy-claim-not-accepted.eml",
+    "06-letter-from-steni-default-notice.eml",
+    "07-letter-from-cep-response-to-default-notice.eml",
+    "08-letter-from-steni-sum-remains-outstanding.eml",
+    "09-letter-from-steni-termination-notice.eml",
+    "10-statement-of-account-unpaid-invoices.txt"
+  ]
+}

@@ -1,0 +1,18 @@
+CHANGE ORDER 7
+Contract reference: GSA Change Order 7
+Contract date: 2016-03-31 (effective upon signature; signed by Cardiorentis on this date)
+Supplier: IQVIA Ltd (then Quintiles Ltd)
+Customer: Cardiorentis AG
+Currency: EUR
+Payment terms: revised payment schedule for Quintiles' own fees; pass-through costs continue to be invoiced monthly as incurred
+Pricing:
+- Total Study Fees per revised project budget | qty 1 | 80,326,108.89
+- Performance Target "90% Data Clean" by 29 February 2016: earn back 5% of undiscounted Traditional Services fee | qty 1
+- Performance Target "Statistical Analysis - Top Line Result" within 13 days after Database Lock | qty 1
+
+Changes: the two GSA Performance Targets relating to database lock (four weeks after Last Patient Out, and by 28 December 2014) are removed and replaced by the "90% Data Clean" target. Other budget changes.
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Cardiorentis v IQVIA [2022] EWHC 250 (Comm), paras 39, 471, 472, 475.
+Date of IQVIA's signature not stated. The 5% figure comes from the description of the related bill at para 472.

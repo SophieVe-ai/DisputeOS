@@ -1,0 +1,20 @@
+{
+  "name": "Vitol v Genser Energy Ghana",
+  "description": "Propane sold on 90-day credit; after a missed invoice due date Vitol terminated and demanded a USD 17,560,514.02 settlement amount, of which USD 3,582,365.95 remained unpaid before a further USD 287,346.69 pre-trial payment, while Genser disputes the due date, the default notice, a June 2018 cargo quantity, late interest and force majeure losses (pack cut down to the key documents; individual invoices summarised in the termination demand).",
+  "files": [
+    "01-sale-and-purchase-agreement-propane.txt",
+    "02-intertek-discharge-certificate-gremio-delivery.txt",
+    "03-email-genser-disputes-june-2018-quantity.eml",
+    "04-third-addendum-agreement-credit-terms.txt",
+    "05-email-revised-invoices-keep-original-dates.eml",
+    "06-email-vitol-revised-february-cargo-invoice.eml",
+    "07-email-vitol-default-notice-s1907772.eml",
+    "08-email-genser-reply-delay-gold-fields.eml",
+    "09-notice-of-termination-and-demand-settlement-amount.txt",
+    "10-email-genser-will-pay-settlement-amount.eml",
+    "11-email-genser-disputes-3m-force-majeure.eml",
+    "12-payment-genser-2019-09-04.txt",
+    "13-payment-genser-2021-03-16.txt",
+    "14-payment-genser-2022-06-08.txt"
+  ]
+}

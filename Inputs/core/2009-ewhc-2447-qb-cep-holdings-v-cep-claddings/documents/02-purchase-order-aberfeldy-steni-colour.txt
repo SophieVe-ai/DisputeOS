@@ -1,0 +1,17 @@
+PURCHASE ORDER ABERFELDY PROJECT
+Contract reference: Aberfeldy project order (order number not stated)
+Contract date: 2003-02-18
+Supplier: Steni Norden AS
+Customer: CEP Claddings Ltd
+Currency: EUR
+Payment terms: 30 days from the end of the month of shipment (EDA clause 3.4)
+Site: Aberfeldy, Docklands, East London (apartment block; main contractor Countryside Properties Plc, cladding subcontractor Joyners PA Limited)
+Specification: Steni Colour Type 8, "Thickness Apprx. 7.5 +/- 0.8mm"
+Pricing:
+- Steni Colour Type 8 White (approx 2,000 m2) and Steni Colour Grey (approx 132.64 m2) | qty 1 | 58,188.42
+Total price: EUR 58,188.42
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: CEP Holdings v Steni [2009] EWHC 2447 (QB), paras 108-109, 114.
+Date given as on about 18 February 2003. Per-square-metre prices and order number not stated; one lump-sum line used.

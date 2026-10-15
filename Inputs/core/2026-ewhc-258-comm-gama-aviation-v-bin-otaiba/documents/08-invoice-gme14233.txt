@@ -1,0 +1,15 @@
+INVOICE
+Invoice number: GME14233
+Invoice date: 2022-08-18
+Due date: 2022-08-25
+Currency: USD
+From: Gama Aviation FZC
+Bill to: Bin Otaiba Investment Group
+Original amount: GBP 115,000.00
+- Progress invoice, maintenance (itemised in current status report as at 6 September 2022) | qty 1 | 139,874.50
+Total due: USD 139,874.50
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Gama Aviation v Bin Otaiba [2026] EWHC 258 (Comm), paras 50, 96, 104.
+Issued for GBP 115,000.00; the USD figure is the conversion stated in the judgment. Due date computed from the Schedule 2 seven-day term.

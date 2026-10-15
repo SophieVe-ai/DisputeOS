@@ -1,0 +1,20 @@
+GUARANTEE
+Contract reference: Guarantee of Dardanel obligations
+Contract date: 2016-01-19
+Signed: 2016-01-23, by the President of Niyazi Onen Gida San. A.S. and by Mr Niyazi Onen in person
+Purchaser: Longulf Trading (UK) Ltd
+Guarantor: Niyazi Onen Gida San. A.S. and Mr Niyazi Onen (jointly and severally)
+Company: Dardanel Onentas Gida Sanayi A.S. dba Dardanel
+
+Recital: in consideration of, inter alia, Purchaser having entered into the Procurement Agreement with the Company and having agreed to provide the services under the Procurement Agreement to the Company, the parties have agreed as follows.
+1.2 "Obligations" means all present and future debts and liabilities of the Company to Purchaser (whether as principal debtor, guarantor, surety or otherwise), of any and every nature whatsoever (direct or indirect, absolute or contingent, matured or not, in principal, interest or otherwise) and howsoever incurred under, in connection with or with respect to the Procurement Agreement.
+2.1 The Guarantor hereby irrevocably guarantees the payment of the Obligations, which the Guarantor expressly covenants to pay to Purchaser, as and from any written demand therefor presented by Purchaser, which demand shall only be presented to the Guarantor following the occurrence of an event of default by the Company under the terms and conditions of the Procurement Agreement ("Event of Default").
+2.2 Each such demand shall be accompanied by a certificate of Purchaser setting forth the Obligations to be paid pursuant to the guarantee and the basis of the calculations made by Purchaser in order to arrive at such amount.
+2.3 Any statement prepared by Purchaser shall, absent manifest error, constitute prima facie evidence of the amount which, as at the date of the statement, is due by the Company to the Purchaser in respect of the Obligations, and the Guarantor shall be bound by every such statement.
+2.4 The Guarantor's obligations continue until the indefeasible payment in full of the Obligations.
+2.9 The Guarantor's obligations continue in force even should any rights under the Procurement Agreement be amended or waived; Purchaser may enforce all or part of the Obligations without affecting the Guarantor's liability (2.9.3).
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Longulf Trading v Niyazi Onen Gida [2019] EWHC 1573 (Comm), paras 1, 7-9, 15, 16, 25, 35, 48.
+Clause wording abridged from the judgment's quotations. Three later amendments to this guarantee (dates not stated) are not reproduced.

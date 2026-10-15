@@ -1,0 +1,14 @@
+INVOICE
+Invoice number: 19700632
+Invoice date: 2019-12-27
+Due date: 2020-01-03
+Currency: EUR
+Bill to: Citrosuco GmbH
+Contract reference: KSYCITROSUCO18.05.2018.44/2018 (variable volume 2019)
+- Wesos (orange pulp wash), part of 800 MT variable volume 2019 | qty 200 | 1,520.00
+Total due: EUR 304,000.00
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: KSY Juice Blends v Citrosuco [2024] EWHC 2098 (Comm), paras 10, 32, 132-133, Appendix 2 (entries 27.12.19, 30.12.19, 4.1.20).
+Number appears once as 1970063 and elsewhere as 19700632; 19700632 used. Rate per MT derived from the total (200 MT, EUR 304,000). Due date assumes the 7-day term pleaded by KSY. Citrosuco does not accept it was sent on 27 December 2019.

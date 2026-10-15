@@ -1,0 +1,14 @@
+INVOICE
+Invoice number: not stated
+Invoice date: 2011-10-25
+Due date: 2011-11-24
+Bill to: Department for Communities and Local Government
+- Consultancy: balance of the minimum days unused, at £850 per day | qty 1 | not stated
+VAT added: amount not stated
+Total due: not stated
+Note: this bill and the one dated 2011-05-09 together come to £760,920.00 inclusive of VAT
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: E-Nik v DCLG [2012] EWHC 3027 (Comm), paras 3, 11, 33, 38.
+Number, period, days and amount not stated; due date computed as 30 days under clause 2.4.

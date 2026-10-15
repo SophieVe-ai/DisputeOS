@@ -1,0 +1,14 @@
+INVOICE
+Invoice number: 2414
+Invoice date: not stated
+Due date: not stated
+Currency: EUR
+Bill to: Ministry of Culture and Tourism of the Republic of Turkey (Culture and Tourism Office, London)
+From: International Media Advertising Ltd
+- Advertising in Golf Digest magazine, Ireland, July 2011 | qty 1 | 950.00
+Total due: EUR 950.00
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: International Media Advertising v Ministry of Culture and Tourism (Turkey) [2018] EWHC 3285 (QB), paras 3, 245(iv).
+Date and due date not stated; one of 7 unpaid Irish campaign bills. A genuine media provider bill in this amount appears in schedule row 50.

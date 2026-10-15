@@ -1,0 +1,20 @@
+{
+  "name": "Gama Aviation FZC v Bin Otaiba Investment Group",
+  "description": "Management of a Bombardier Global 5000 aircraft: the manager claims about US$3.9m of unpaid management fees and recharged maintenance and hangarage costs, and the owner says it terminated by email, never approved the emergent maintenance, the bills lacked detail and hangar parking was excessive (pack cut down to the four disputed maintenance invoices plus a closing statement of account).",
+  "files": [
+    "01-aircraft-management-agreement-2020-10-15.txt",
+    "02-email-from-gaf-suspension-and-parking-2021-05-24.eml",
+    "03-invoice-gme13943.txt",
+    "04-remittance-advice-gme13943-part-payment.txt",
+    "05-email-from-boig-termination-2022-03-24.eml",
+    "06-invoice-gme14149.txt",
+    "07-invoice-gme14163.txt",
+    "08-invoice-gme14233.txt",
+    "09-letter-from-gaf-ama-remains-valid-2022-10-12.eml",
+    "10-letter-from-boig-offer-2023-02-06.eml",
+    "11-letter-from-gaf-demand-2023-03-23.eml",
+    "12-notice-from-boig-2023-04-25.eml",
+    "13-notice-of-lien-2024-02-06.eml",
+    "14-statement-of-account-2025-12-15.txt"
+  ]
+}

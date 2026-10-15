@@ -1,0 +1,17 @@
+INVOICE
+Invoice number: 5803171298
+Invoice date: 2017-03-24
+Due date: 2017-04-04
+Supplier: IBM United Kingdom Ltd
+Bill to: CIS General Insurance Ltd
+Purchase order number: not stated (none quoted)
+- Implementation Services under the Master Services Agreement. B04004 - IMP - 020 Application Gate 5. Application Gate 5 - covers IBM Software Products | qty 1 | £2,408,000.00
+- VAT | qty 1 | £481,600.00
+Total due: £2,889,600.00
+Note invoice due 7 business days from receipt of email containing invoice.
+Sent: 2017-03-25 by email to purchase2pay@cisgil.example (CISGIL Accounts Payable)
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: CIS General Insurance v IBM [2021] EWHC 347 (TCC), paras 10, 164, 172, 176, 284-285, 309.
+VAT line derived as total less the stated net of £2,408,000; due date as asserted by IBM (para 176); e-billing route agreed about November 2015; real mailbox replaced with a placeholder. The reference "IMP - 020" is as issued (the milestone is IMP-030).

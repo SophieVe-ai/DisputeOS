@@ -1,0 +1,13 @@
+WEEKLY PROGRESS REPORT TRUE-AHF
+Delivery date: 2016-02-26 (status date; report circulated to Cardiorentis 2016-02-29)
+Site: TRUE-AHF study, all sites
+- Forms source data verified (SDVed), per cent | qty 99.95
+- Patients with all pages SDVed, per cent | qty 94
+- Patients clean up to day 30, per cent | qty 95
+Signed by: not stated (IQVIA study team)
+Condition notes: Relied on by IQVIA for the Change Order 7 milestone "90% Data Clean" by 29 February 2016.
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Cardiorentis v IQVIA [2022] EWHC 250 (Comm), paras 39, 472, 473.
+Percentages shown in the qty column; the parser reads whole numbers only, so 99.95 may read as 99. Data after day 30 not stated.

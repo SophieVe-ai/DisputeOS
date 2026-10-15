@@ -1,0 +1,21 @@
+SPOT CONTRACT 7008356
+Contract reference: 7008356
+Contract date: 2016-08-25
+Supplier: Addax Energy SA
+Customer: Petro Trade Inc
+Currency: USD
+Payment terms: 90 calendar days from the official release date under the SDA, which should take place latest 90 days from COD of delivering vessel, via a fully operative documentary credit (cl. 10)
+Delivery terms: DAP Monrovia one safe port, one safe berth, during 2/6 September 2016. The gasoil under this DAP delivery in the China Union tanks will be placed under a SDA (Secured Distributions Agreement) run by ACE, with release of product only on seller's instruction.
+Late payment: interest at a rate of actual cost of funding as advised by the financing bank plus a margin of eight percent (8.0 pct) per annum pro rata (cl. 10)
+Risk and title: risk passes "when the product passes the flange connection between vessels' permanent cargo discharge manifold and the delivery hose(s) at discharge port"; title remains with seller until payment and release of the product by seller (cl. 13)
+Quantity inspection: "The quantity inspection shall be witnessed and/or certified by independent inspectors appointed by [Addax] and acceptable to [Petro Trade] and shall be set out in certificate(s) of quantity" (cl. 6)
+Law and jurisdiction: English law, Courts of England and Wales (cl. 15)
+Pricing:
+- Gasoil as per Liberian Specs | qty 16000 MT +/-10 pct seller option | Fob Med Gasoil 0.1 pct + USD 43 per MT
+Opening words: "THIS IS TO CONFIRM THE AGREEMENT REACHED BETWEEN THE SELLER AND THE BUYER ON 25/08/2016 MADE BETWEEN MR FRANCOIS TORRE FOR ADDAX ENERGY SA AND MARWAN HINDAWI FOR PETROTRADE."
+Variation: quantity varied by emails of 2016-09-05 to 14,200 MT.
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Addax Energy SA v Petro Trade Inc [2023] EWHC 1609 (Comm), paras 1, 54, 64(1), 69-71, 74, 87, 89.
+Recap email and spot terms of 25 August 2016 combined; full clause texts not stated. Pack cut down to the four unpaid bills and key letters; earlier trades and the SDA of 1 December 2015 are omitted.

@@ -1,0 +1,15 @@
+INVOICE
+Invoice number: not stated
+Invoice date: 2008-05-30
+Due date: not stated
+Supplier: Sigma Pharmaceuticals plc
+Bill to: Ocean Healthcare Ltd
+Address: 12 High Road, London E13
+Orders: three separate orders placed by Ocean Healthcare Ltd on 2008-05-30, taken by three separate members of Sigma staff
+- Pharmaceutical goods under the three orders | qty 1 | price not stated
+Total due: not stated
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Ocean Healthcare v Sigma Pharmaceuticals [2014] EWCA Civ 1468, paras 8 (trial judgment paras 9, 14), 22.
+Example document only (trial bundle p 354); number, goods, prices and total not stated.

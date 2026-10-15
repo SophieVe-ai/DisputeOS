@@ -1,0 +1,17 @@
+STATEMENT OF PAYMENTS RECEIVED
+From: Bluewater Energy Services BV
+Payment date: not stated
+Currency: EUR
+Amount paid: EUR 20,086,403.71
+Reference: Net sums received by Mercon on the SYMS account
+- Paid Milestones | 12,822,563.29
+- Court Order Settlement (Dutch attachment proceedings, paid directly to Mercon) | 3,000,000.00
+- Escrow Account (released to Mercon) | 3,000,000.00
+- Instalments Settlement | 3,059,075.42
+- Less Performance Bond drawn by Bluewater | -1,795,235.00
+Net received | 20,086,403.71
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Bluewater v Mercon [2014] EWHC 2132 (TCC), paras 14, 16, 1535.
+Dates of the individual sums not stated; figures are those agreed between the parties.

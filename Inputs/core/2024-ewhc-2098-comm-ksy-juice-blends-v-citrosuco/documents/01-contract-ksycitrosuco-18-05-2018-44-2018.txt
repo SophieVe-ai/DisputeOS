@@ -1,0 +1,24 @@
+CONTRACT KSYCITROSUCO18.05.2018.44/2018
+Contract reference: KSYCITROSUCO18.05.2018.44/2018
+Contract date: 2018-05-18
+Supplier: KSY Juice Blends UK Ltd
+Customer: Citrosuco GmbH
+Currency: EUR
+Payment terms: 7 days from invoice
+Product: wesos (orange pulp wash), 60 Brix
+Quantity: 3600MT (cl 10); 1.200MT per each year, 2019, 2020 and 2021
+Pricing:
+- Wesos 60 Brix, fixed volume 2019 | qty 400 | 1,350.00 per unit
+- Wesos 60 Brix, fixed volume 2020 | qty 400 | 1,350.00 per unit
+- Wesos 60 Brix, fixed volume 2021 | qty 400 | 1,350.00 per unit
+Clause 3 Price: "Invoicing price is 1.600euro/mt for 60 brix. Price adjustable according to Brix value +- 5 Brix. Free trucks will be offered from the seller according to the agreed volume & price of each year. Calculation basis for the 1.200mt fixed is 1.350 euro/mt which corresponds to the 400mt/year 2019-2020-2021"
+Clause 5 Delivery period: "1.200MT per each year. Deliveries to start January to December with the following split: 400mt fixed at 1.350euro/mt - invoicing price is 1600euro/mt. Difference of price in free trucks. 800mt at open price to be fixed latest by December of the previous year. Difference of price in free trucks"
+Clause 9 Instructions for dispatch: "The Buyer should inform the Seller 15 days prior to every delivery. The Buyer is obliged to inform the Seller concerning the receipt and condition of goods as well as any potential remarks within five (5) days from date of receipt of the Product."
+Clause 16 Entire Agreement: "no representations or understandings other than those herein expressed shall add to, vary or modify the Agreement, unless such addition, variance or modification is made in writing and signed by both parties."
+Clause 17 Severance: every provision intended to be severable.
+Signed: KSY Juice Blends UK Ltd and Citrosuco GmbH (signed copy circulated 2018-11-05)
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: KSY Juice Blends v Citrosuco [2024] EWHC 2098 (Comm), paras 2, 18, 133, Appendix 2 (entries 18.5.18, 5.11.18).
+Pricing lines show the fixed 400 MT/year tranches only; the 800 MT/year open-price tranche had no fixed figure. The 7-day term is as pleaded by KSY (para 133), clause wording not quoted. Signatories not stated.

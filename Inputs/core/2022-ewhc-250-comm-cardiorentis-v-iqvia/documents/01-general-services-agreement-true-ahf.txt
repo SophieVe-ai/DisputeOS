@@ -1,0 +1,23 @@
+GENERAL SERVICES AGREEMENT
+Contract reference: GSA (TRUE-AHF Phase III study of ularitide)
+Contract date: 2012-08-30
+Supplier: IQVIA Ltd (then Quintiles Ltd)
+Customer: Cardiorentis AG
+Currency: EUR
+Payment terms: 30 days from receipt of invoice (prepayment, advance and investigator invoices within 10 calendar days of receipt)
+Pricing:
+- Fees, expenses and pass-through costs in accordance with the budget (Attachment 2) and payment schedule (Attachment 4) | qty 1
+- Service Delivery Excellence Program: 15% reduction off Quintiles' professional labor fees, which Quintiles may earn back by meeting one or more of five Key Milestones or Performance Targets | qty 1
+- Key Milestone 4, Statistical Analysis (Top Line Result): target 13 days after Database Lock; 3% of fees for Traditional Services available for earn back | qty 1
+
+Clause 2 (extract): "Sponsor will pay Quintiles the fees, expenses and pass-through costs in accordance with the budget (Attachment 2) and payment schedule (Attachment 4) attached ... Quintiles reserves the right to impose, and Sponsor agrees to pay if imposed by Quintiles, interest in an amount equal to two percent (2%) above the one month base interest rate established by the Bank of England per month ... of all undisputed amounts owing hereunder, which are outstanding thirty (30) or more days from the due date of the invoice ... If Quintiles shall fail to meet one or more of the targets then Quintiles will not earn back the applicable proportion of the discount ..."
+Clause 5: changes require a written amendment (a "Change Order").
+Clause 8: at completion, Sponsor's materials and data to be delivered to Sponsor, subject to the payment obligations in Section 2.0.
+Clause 10(a): Services to be performed "with the standard of care customary in the contract research organization industry".
+Clause 16: no liability for loss of profits or consequential loss; aggregate liability capped at fees actually received from Sponsor.
+Governing law: English law.
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Cardiorentis v IQVIA [2022] EWHC 250 (Comm), paras 17, 23-33.
+Supersedes the first GSA of 29 May 2012 and the interim authorisation of 26 August 2011 (novated to Cardiorentis). Budget figures and Change Orders 1-6 are not reproduced.

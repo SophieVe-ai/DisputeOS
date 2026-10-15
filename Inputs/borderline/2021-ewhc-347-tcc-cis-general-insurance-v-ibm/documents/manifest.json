@@ -1,0 +1,15 @@
+{
+  "name": "IBM United Kingdom v CIS General Insurance",
+  "description": "IBM's unpaid £2,889,600 milestone invoice (Application Gate 5, software licences) under the Project Cobalt IT implementation contract, rejected by CISGIL for lack of a purchase order, as premature, and by set-off; cut down from a much larger IT project dispute.",
+  "files": [
+    "01-master-services-agreement-msa.txt",
+    "02-milestone-delivery-imp-030-application-gate-5.txt",
+    "03-invoice-5803171298.txt",
+    "04-email-from-cisgil-rejecting-invoice.eml",
+    "05-email-from-ibm-requesting-po.eml",
+    "06-letter-from-addleshaw-goddard-set-off.eml",
+    "07-letter-from-addleshaw-goddard-disputing-ag5-invoice.eml",
+    "08-letter-from-cms-demanding-ag5-invoice.eml",
+    "09-final-notice-from-ibm.eml"
+  ]
+}

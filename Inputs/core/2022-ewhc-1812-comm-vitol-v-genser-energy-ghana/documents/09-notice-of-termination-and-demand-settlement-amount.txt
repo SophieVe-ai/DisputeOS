@@ -1,0 +1,18 @@
+NOTICE OF TERMINATION AND DEMAND SETTLEMENT AMOUNT
+LEGAL NOTICE OF CONTRACTUAL TERMINATION AND CALCULATION OF SETTLEMENT AMOUNT
+Date: 2019-06-06
+Bill to: Genser Energy Ghana Ltd
+Currency: USD
+Grounds: in breach of the SPA, Genser failed to pay Vitol USD 4,174,546.76 on the due date of 29 May 2019 under invoice number S1907772, as notified by email of 30 May 2019. This is an event of default; Vitol terminates and liquidates the SPA with immediate effect and has calculated the settlement amount in a commercially reasonable manner.
+Due date: no later than three business days from receipt of this letter
+- Invoices (due and payable) | qty 1 | 14,337,429.23
+- Loss: May and June Supply Cargoes | qty 1 | 1,059,310.04
+- Loss: Floating Storage | qty 1 | 1,963,774.75
+Total due: USD 17,560,514.02
+
+Enclosure: spreadsheet showing the calculation (prepared by Mr Darribere). It includes interest totalling USD 19,654.11: USD 17,885.17 on the January 2019 cargo, USD 974.92 on the December 2018 floating storage and USD 1,768.94 on the February 2019 floating storage.
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Vitol v Genser Energy Ghana [2022] EWHC 1812 (Comm), paras 2, 31, 68-70, 108, 113, 117.
+Hard copy dated 2019-06-04, received 2019-06-06 13:18; soft copy with this demand emailed 2019-06-06 12:02 to Mr Asiamah-Adjei and Ms Menyah. The three lines add up to 17,360,514.02, not the stated total; the judgment uses 17,560,514.02. The bills making up the first line are not itemised in the judgment. Alternative claim if this fails: USD 559,281.16 on five disputed bills (S1818478, S19907748, S1910289, S1913404, S1914040).

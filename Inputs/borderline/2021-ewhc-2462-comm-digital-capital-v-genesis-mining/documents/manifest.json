@@ -1,0 +1,15 @@
+{
+  "name": "Digital Capital v Genesis Mining Iceland",
+  "description": "Regulatory set-up, core banking software and monthly operational/maintenance services for the Genesis Wallet; the client stopped paying the monthly invoices (GBP 2,484,046 outstanding) in late 2018 and then purported to terminate for alleged non-performance.",
+  "files": [
+    "01-service-agreement-genesis-wallet.txt",
+    "02-delivery-confirmation-regulatory-set-up-completed.txt",
+    "03-telegram-message-genesis-cannot-support-monthly-costs.eml",
+    "04-meeting-note-24-march-2019.eml",
+    "05-letter-of-claim-charles-fussell-purported-termination.eml",
+    "06-notice-of-suspension-clause-13.eml",
+    "07-letter-charles-fussell-11-september-2019.eml",
+    "08-statement-of-account-unpaid-monthly-invoices.txt",
+    "09-davis-woolfe-acceptance-of-repudiation.eml"
+  ]
+}

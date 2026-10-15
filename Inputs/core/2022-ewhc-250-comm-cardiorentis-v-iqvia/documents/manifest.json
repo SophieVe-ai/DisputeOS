@@ -1,0 +1,15 @@
+{
+  "name": "IQVIA v Cardiorentis",
+  "description": "Clinical research services for the TRUE-AHF Phase III trial: IQVIA claims EUR 9,501,587.25 of unpaid invoices, including two milestone earn-back invoices, and Cardiorentis disputes the milestones and sets off damages for allegedly defective trial conduct (pack cut down to the contract, milestone evidence, the complaint and a schedule of outstanding invoices).",
+  "files": [
+    "01-general-services-agreement-true-ahf.txt",
+    "02-email-iqvia-internal-data-cleaning-status.eml",
+    "03-weekly-progress-report-delivery-of-data-cleaning.txt",
+    "04-top-line-results-tlfs-delivery.txt",
+    "05-email-iqvia-data-cleaning-milestone-call.eml",
+    "06-email-cardiorentis-confirms-90-percent-data-clean.eml",
+    "07-change-order-7-agreement.txt",
+    "08-letter-cardiorentis-north-carolina-complaint.eml",
+    "09-statement-of-account-outstanding-invoices.txt"
+  ]
+}

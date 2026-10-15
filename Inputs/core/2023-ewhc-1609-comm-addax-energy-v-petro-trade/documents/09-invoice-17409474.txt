@@ -1,0 +1,14 @@
+INVOICE
+Invoice number: 17409474
+Invoice date: 2020-08-07
+Due date: 2020-12-04
+Bill to: Petro Trade Inc
+Currency: USD
+Contract reference: Term Agreement 2018 to 2019 Gasoil Mogas
+- Gasoil ex M/T STI Beryl, 896.13 MT released 6 August 2020 | qty 1 | 538,574.13
+Total due: USD 538,574.13
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Addax Energy SA v Petro Trade Inc [2023] EWHC 1609 (Comm), paras 1, 122(9)-(11), 131(5), 137 (bundle ref G/3332).
+Unit price and line breakdown not stated; lump sum shown. Sum demanded by 4 December 2020; strictly 90 days from the 6 August 2020 release would be 4 November 2020.

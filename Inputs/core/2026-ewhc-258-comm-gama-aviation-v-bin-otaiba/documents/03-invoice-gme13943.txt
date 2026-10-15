@@ -1,0 +1,15 @@
+INVOICE
+Invoice number: GME13943
+Invoice date: 2021-11-30
+Due date: 2021-12-07
+Currency: USD
+From: Gama Aviation FZC
+Bill to: Bin Otaiba Investment Group
+Aircraft: Bombardier Global 5000, MSN 9156 (maintenance at Bournemouth by Gama Aviation (Engineering) Ltd)
+- All labour and parts to date, cost of the parts indicated on CCO11 and 50% of the estimated labour to complete | qty 1 | 1,238,514.55
+Total due: USD 1,238,514.55
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Gama Aviation v Bin Otaiba [2026] EWHC 258 (Comm), paras 37, 42, 45, 96, 104.
+Line breakdown not stated (single lump-sum line). Due date computed from the Schedule 2 seven-day term. Resent to Mr Suarez on 2022-03-10.

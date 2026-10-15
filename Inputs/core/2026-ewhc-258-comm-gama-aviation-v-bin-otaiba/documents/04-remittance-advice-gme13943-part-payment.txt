@@ -1,0 +1,11 @@
+REMITTANCE ADVICE
+From: Bin Otaiba Investment Group
+Payment date: 2022-03-18
+Currency: USD
+Amount paid: USD 957,710.25
+Reference: GME13943 part payment
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Gama Aviation v Bin Otaiba [2026] EWHC 258 (Comm), paras 44, 45, 48, 104.
+Format reconstructed. Para 104 gives USD 957,710.25 credited on 18 March 2022; paras 44-45 and 48 describe the sum as the agreed 700,000 (GBP in para 44, USD in para 48). The earlier USD 178,238 (GME13663, settled 2 May 2021) is not reproduced.

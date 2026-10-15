@@ -1,0 +1,13 @@
+INVOICES DISPUTED 2008
+Invoice number: various, listed at trial bundle pp 244-246 (numbers not stated)
+Invoice date: not stated (various dates in 2008)
+Due date: not stated
+Supplier: Sigma Pharmaceuticals plc
+Bill to: Ocean Healthcare Ltd
+- Pharmaceutical and ancillary goods, invoices Ocean says were never ordered or delivered | qty 1 | £21,376.71
+Total due: £21,376.71
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Ocean Healthcare v Sigma Pharmaceuticals [2014] EWCA Civ 1468, paras 3-5, 7, 12-13, 19.
+Consolidates the disputed entries into one lump sum; para 4 gives £21,376.31, the court relies on £21,376.71. A further £1,108.80 with missing notes (3 May to 5 December 2008) is not added; VAT treatment unclear.

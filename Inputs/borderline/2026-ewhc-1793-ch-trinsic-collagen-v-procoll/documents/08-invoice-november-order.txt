@@ -1,0 +1,12 @@
+INVOICE
+Invoice number: not stated
+Invoice date: 2023-11-11
+Due date: not stated
+Bill to: Trinsic Collagen Ltd
+- Food grade bovine single alpha chain collagen, November Order (5kg batch) | qty 1 | £30,000.00
+Total due: £30,000.00
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Trinsic Collagen v Procoll [2026] EWHC 1793 (Ch), paras 68, 279, 281.
+Number, due date and line breakdown not stated.

@@ -1,0 +1,14 @@
+INVOICE
+Invoice number: not stated
+Invoice date: 2006-10-15
+Due date: 2006-10-15
+From: RAM Media Limited
+Bill to: The Ministry of Culture of the Hellenic Republic (Secretariat General of Sport)
+Currency: EUR
+- Third instalment of the hosting fee, Cl I 3(b), due Friday 15 October 2006 | qty 1 | 1,200,000.00
+Total due: EUR 1,200,000.00
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: RAM Media v Ministry of Culture of the Hellenic Republic [2008] EWHC 1835 (QB), paras 10, 32, 68.
+Number and wording not stated. Earlier instalments (EUR 2,400,000 received; the second in two parts, EUR 300,000 on 2006-09-19 and EUR 900,000 on 2006-09-22) are not shown as separate records because their bills are not described (paras 31, 208, 241).

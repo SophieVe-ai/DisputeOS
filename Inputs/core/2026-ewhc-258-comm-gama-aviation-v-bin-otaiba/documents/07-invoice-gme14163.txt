@@ -1,0 +1,14 @@
+INVOICE
+Invoice number: GME14163
+Invoice date: 2022-06-06
+Due date: 2022-06-13
+Currency: USD
+From: Gama Aviation FZC
+Bill to: Bin Otaiba Investment Group
+- Emergent work arising during the scheduled maintenance (itemised in current status report as of 10 June 2022) | qty 1 | 198,844.12
+Total due: USD 198,844.12
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Gama Aviation v Bin Otaiba [2026] EWHC 258 (Comm), paras 96, 104.
+Line breakdown not stated (single lump-sum line). Due date computed from the Schedule 2 seven-day term.

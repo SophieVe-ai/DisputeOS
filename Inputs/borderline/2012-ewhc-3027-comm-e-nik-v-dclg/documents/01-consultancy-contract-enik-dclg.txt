@@ -1,0 +1,24 @@
+CONSULTANCY CONTRACT
+Contract reference: not stated (Appendix 1 to the Fujitsu Agreement)
+Contract date: 2009-04-01
+Supplier: E-Nik Ltd
+Customer: Department for Communities and Local Government
+Term: 2009-04-01 to 2011-09-30
+Payment terms: 30 days from the date of a valid invoice
+Purpose: "purchase Consultancy to provide Project Work, including Project Management, Scoping/Analysis and Systems Development for" Government information technology systems.
+Clause 2.1: "The Authority hereby undertakes to purchase minimum of 500 days of Consultancy from the Supplier per year based on project requirement, additional days will be required once the purchased days have been exhausted."
+Clause 2.2: "The Authority shall issue an Assignment Note to requisition Services from the Supplier."
+Clause 2.3: "The Authority shall pay the Supplier fees at the rate of not less than £850 per day but subject to mutually agreed assignment notes for each change request."
+Clause 2.4: "Payment of the fees shall be made within 30 days of the date of a valid invoice from the Supplier."
+Clause 3.7: "To comply with all the requirements of VAT legislation and the Companies Act."
+Clause 3.8: "Supplier is obliged to provide concise accounts of resources used on a monthly basis as an excel document which shows work priorities, days used, days remaining and days purchased."
+Clause 8.1: terminable by "12 months written notice with 12 months cancellation from the date of notice received by either party".
+Appendix 2 to the Fujitsu Agreement: "The Supplier will raise an invoice upon Fujitsu yearly in advance."
+Pricing:
+- Consultancy (minimum per year) | qty 500 | £850.00 per day
+Signed: for E-Nik Ltd by a shareholder (Ms Dawett's husband) on 2009-05-20; for the Authority by Mr Bentley on 2009-05-21
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: E-Nik v DCLG [2012] EWHC 3027 (Comm), paras 1-2, 4, 7.
+No reference number stated; the E-Nik signatory is not named. The text says nothing about VAT (para 32).

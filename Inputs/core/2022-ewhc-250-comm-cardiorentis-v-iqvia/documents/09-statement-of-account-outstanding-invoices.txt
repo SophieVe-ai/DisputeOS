@@ -1,0 +1,16 @@
+STATEMENT OF ACCOUNT TRUE-AHF
+Date: 2018-12-31
+Bill to: Cardiorentis AG
+Currency: EUR
+Schedule of outstanding invoices (TRUE-AHF study)
+- THV-158125: milestone "90% Data Clean" by 29 February 2016, 5% of undiscounted Traditional Services fee | qty 1 | 2,332,579.80
+- THV-159368: milestone "Statistical Analysis - Top Line Result" within 13 days after Database Lock | qty 1 | 1,399,547.88
+- THV-159099, THV-159453, 165928 and 182323 (combined) | qty 1 | 181,319.10
+- All other outstanding fee and pass-through invoices in the schedule | qty 1 | 5,588,140.47
+Total due: EUR 9,501,587.25
+Interest: 2% above the Bank of England one month base rate per month on undisputed sums outstanding 30 or more days after due date (GSA clause 2)
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Cardiorentis v IQVIA [2022] EWHC 250 (Comm), paras 27, 225, 468, 469, 472, 475.
+Based on the schedule to IQVIA's particulars (issued 2018-12-31). Bill dates, due dates and the other bills are not stated; the last line is the remainder of the total. The total is also given as 9,501,587.24 (para 225). Mr Hira's later witness schedule omitted the four combined bills.

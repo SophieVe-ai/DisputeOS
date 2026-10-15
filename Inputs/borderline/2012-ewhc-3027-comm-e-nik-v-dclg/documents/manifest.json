@@ -1,0 +1,15 @@
+{
+  "name": "E-Nik v Department for Communities and Local Government",
+  "description": "IT consultancy under a minimum 500-days-per-year contract at £850 per day; the Department refused two invoices for the unused minimum (£760,920 including VAT), saying the minimum depended on project requirement, was a penalty and was VAT-inclusive.",
+  "files": [
+    "01-consultancy-contract-enik-dclg.txt",
+    "02-email-enik-asks-minimum-500-days.eml",
+    "03-email-dclg-confirms-minimum.eml",
+    "04-meeting-minutes-general-review.eml",
+    "05-email-dclg-suspends-work.eml",
+    "06-invoice-2011-05-09.txt",
+    "07-invoice-2011-10-25.txt",
+    "08-statement-of-account.txt",
+    "09-letter-dclg-defence-position.eml"
+  ]
+}

@@ -1,0 +1,29 @@
+MASTER SERVICES AGREEMENT
+Contract reference: MSA, Implementation SOW and Managed Service SOW (Project Cobalt)
+Contract date: 2015-06-16
+Supplier: IBM United Kingdom Ltd
+Customer: CIS General Insurance Ltd
+Payment terms: 7 Business Days from receipt of a correctly prepared invoice properly submitted (Schedule 5 para 11.7)
+Pricing:
+- Supply and implementation of new IT system (Implementation SOW, fixed price milestones per Roadmap Table A.1) | qty 1 | £50,200,000.00
+- Managed services over ten years from implementation (Managed Service SOW, estimated) | qty 1 | £125,600,000.00
+
+Clause 14: "In consideration of the performance of the Services, the Customer shall pay the Supplier the Charges as set out in and/or as calculated in accordance with schedule 5 (Charges), which shall be invoiced at the times and in the manner specified in schedule 5 (Charges)."
+
+Schedule 5 (Charges):
+11.1 All invoices under this Agreement must be addressed to the following address (unless agreed otherwise in writing by the Customer): (a) by email to purchase2pay, simultaneously copied by email to the GI financial reporting team; or (b) via post to The Co-operative, GI Invoice processing, Angel Sq, Manchester.
+11.4 Unless otherwise agreed by the parties, each Supplier invoice shall: (a) reflect and support the pricing and financial provisions set out in this schedule 5 (Charges); (b) quote the relevant Statement of Work identifier and the unique Customer purchase order number; (c) clearly show the basis of the Charges ... and the relevant payment milestone for fixed price Statements of Work; and (d) provide a summary of the Charges incurred each month separately for each Statement of Work.
+11.5 Unless otherwise set out in a Statement of Work, the Supplier shall invoice the Customer in respect of the Charges to which it is entitled under the Agreement within 180 days of the date on which the Supplier completes the relevant Milestone identified in the relevant Statement of Work. Any Charges which are not invoiced within this timeframe shall not be recoverable by the Supplier.
+11.7 Unless the Customer disputes an invoice in good faith in accordance with paragraphs 11.11 and 11.12 of this schedule 5 (Charges), the Customer shall pay correctly prepared invoices properly submitted in relation to payments to be made under this Agreement within seven (7) Business Days of receipt.
+11.11 If, at any time, the Customer acting in good faith disputes an invoice or an amount shown in an invoice delivered by the Supplier, the Customer shall pay the undisputed amount (if any) of the invoice within the period required under paragraph 11.7 above. The Customer shall within seven (7) Business Days of receipt of an invoice notify the Supplier in writing if it disputes any element of the invoice with details of the amounts (Disputed Amount) and reasons for disputing the relevant part of the invoice.
+11.12 Provided the Customer has given the notice in paragraph 11.11, the Customer may withhold payment of, and meet with the Supplier to discuss, the Disputed Amount ... If ... the Disputed Amount has not been agreed, then the Customer and the Supplier shall resolve the matter in accordance with the dispute resolution process set out in schedule 19 (Dispute Resolution) of this Agreement.
+
+Implementation SOW para 5.1.2.2: "In respect of each Milestone, [IBM] shall be entitled to invoice the amount set out in column [L] of the Roadmap, on such Milestone being completed in accordance with the terms of this Agreement."
+Roadmap Table A.1: IMP-030 - Application Gate 5 - Application delivery phase 5 - latest delivery date of start January 2017. Not subject to Schedule 6 Acceptance (column H "No"); no direct predecessor milestone (columns E and F "n/a"). Nominated Customer Approver: Customer Transformation Director.
+Clause 26.7: Final Notice and termination right for non-payment of undisputed amounts.
+Signed: not stated
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: CIS General Insurance v IBM [2021] EWHC 347 (TCC), paras 4-5, 176, 217-232, 282-283.
+Large IT project case cut down to the AG5 milestone claim of £2,889,600; email addresses in 11.1 shortened; signatories and any MSA reference number not stated; clause 26.7 summarised.

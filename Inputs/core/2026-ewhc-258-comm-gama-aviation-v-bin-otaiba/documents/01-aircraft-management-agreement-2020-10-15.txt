@@ -1,0 +1,26 @@
+AIRCRAFT MANAGEMENT AGREEMENT
+Contract date: 2020-10-15
+Supplier: Gama Aviation FZC
+Customer: Bin Otaiba Investment Group
+Currency: USD
+Aircraft: Bombardier Global 5000, MSN 9156
+Payment terms: management and CAMO fees monthly in advance; reimbursement of costs and expenses within 7 days of invoice detailing such costs and expenses and backed up with supporting documentation (Schedule 2)
+Clause 5.1: The Manager "shall arrange all routine and/or scheduled maintenance of the Aircraft and all necessary repairs thereto so as at all times to maintain the Aircraft in a fully airworthy condition."
+Clause 5.2: The Manager "shall have authority to expend or commit funds on BOIG's behalf for unscheduled maintenance or repair of the Aircraft up to $50,000 (or such greater amount as BOIG may from time to time agree in writing) per occurrence without obtaining BOIG's prior approval ... For expenditures or commitments above this figure BOIG's prior written consent shall be required", save where a problem requires immediate attention and BOIG is not available.
+Clause 6.2: BOIG shall reimburse the Manager for all costs and expenses incurred and paid by the Manager in connection with the Aircraft in the provision of the Services, including (without limitation) hangarage, handling, maintenance and insurance.
+Clause 6.4: "Interest at the rate of one per cent (3%) per month compounded monthly shall be payable on any money outstanding and due under this Agreement, before as well as after any judgment."
+Clause 7.1: The Manager shall have a contractual lien, both general and particular, over the Aircraft for all fees, charges, costs and other liabilities properly due and payable by BOIG; the lien is not lost by the Aircraft not being in the Manager's possession; the Manager may sell the Aircraft in exercise of the lien.
+Clause 8 (Charter of the Aircraft): "deleted intentionally".
+Clause 10.1: minimum initial period of six (6) months from the Start Date, after which any party may terminate "by giving at least six (6) months written notice to the other party, to expire on a date (the Expiry Date) at the earliest twelve (12) months after the Start Date."
+Clause 10.7: on termination, "upon payment in full by BOIG of all amounts due to the Manager pursuant to this Agreement, the Manager shall immediately give up possession of and redeliver to BOIG the Aircraft".
+Clause 11.8: notices in writing; if sent by fax or email, "a confirmatory copy of such fax or email ... is received by the addressee by regular mail within forty eight (48) hours of such transmission". Notices to the Manager: Gama Aviation FZC, Sharjah International Airport, attention Janine Tombs.
+Pricing:
+- General management fee | qty 1 | 7,500.00 per month
+- Continued airworthiness management (CAMO) fee | qty 1 | 2,500.00 per month
+- Costs and expenses (including maintenance and hangarage) | qty 1 | at cost, recharged under clause 6.2
+Signed: His Excellency Khalaf Ahmed Al Otaiba (Chairman, Bin Otaiba Investment Group), Janine Tombs (Managing Director, Gama Aviation FZC), signed 2020-10-12
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Gama Aviation v Bin Otaiba [2026] EWHC 258 (Comm), paras 1, 2, 14, 61-75.
+Clause texts abridged to the parts quoted in the judgment; schedules not reproduced in full; reference number not stated.

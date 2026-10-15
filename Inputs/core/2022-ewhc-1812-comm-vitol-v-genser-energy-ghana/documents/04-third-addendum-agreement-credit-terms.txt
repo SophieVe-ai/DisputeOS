@@ -1,0 +1,22 @@
+THIRD ADDENDUM
+Contract reference: Addendum No. 3 to the SPA of 15 March 2018
+Contract date: 2018-11-15
+Supplier: Vitol SA
+Customer: Genser Energy Ghana Ltd
+Currency: USD
+Payment terms: 90 days after invoicing date. Product monthly value to be invoiced on the last business day of the month, to be paid not later than 90 days after invoicing date; FSU monthly costs to be invoiced in advance on the 1st day of the month and paid not later than 90 days after invoicing date (Guaranteed Payment clause, while the Al Koot Guarantee and Undertaking remains valid)
+Term: extended to 2019-12-31
+Pricing:
+- Propane, 1 April 2018 to 28 February 2019, minimum monthly take-or-pay quantity (m/t); price OPIS non TET MB Propane plus USD 54 per m/t to 31 December 2018, plus USD 72 per m/t in 2019 | qty 9000
+- Floating storage unit and bunkering, 1 January 2019 to 31 December 2019, pro rata | qty 1 | 13,000.00 per day
+
+Key terms:
+Guarantee Clause: Genser to provide a Guarantee and Undertaking from Al Koot Insurance and Reinsurance Company S.A.Q.
+Events of Default Clause: a default occurs if either party fails to make any payment due under the agreement that is not cured within two (2) banking days' notice to the defaulting party to make the payment.
+Liquidation Clause: the non-defaulting party may, on notice, suspend performance, terminate, or terminate and/or liquidate. On liquidation a settlement amount is calculated in a commercially reasonable manner and notified in writing within 5 business days of notice of termination; the single liquidated amount is due 3 business days after notice. Settlement amount covers amounts payable or which would become payable but for termination, plus losses and costs from the liquidation.
+Signed: Mr Asiamah-Adjei for Genser; David Fransen for Vitol
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Vitol v Genser Energy Ghana [2022] EWHC 1812 (Comm), paras 8-17.
+From 1 March 2019 the 9,000 m/t monthly minimum was no longer take-or-pay. Fourth to Sixth Addenda (price fixes) are not reproduced; the Seventh (late interest at 8% over LIBOR, dated 21 March 2019) was never signed.

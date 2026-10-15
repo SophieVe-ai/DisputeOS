@@ -1,0 +1,14 @@
+INVOICE
+Invoice number: GME14149
+Invoice date: not stated
+Due date: not stated
+Currency: USD
+From: Gama Aviation FZC
+Bill to: Bin Otaiba Investment Group
+- Emergent defect rectification: brakes | qty 1 | 209,813.11
+Total due: USD 209,813.11
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Gama Aviation v Bin Otaiba [2026] EWHC 258 (Comm), paras 96, 104.
+Date not stated (placed by its number between March and June 2022); line breakdown not stated.

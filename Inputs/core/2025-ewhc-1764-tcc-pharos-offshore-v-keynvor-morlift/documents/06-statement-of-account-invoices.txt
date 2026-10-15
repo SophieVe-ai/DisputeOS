@@ -1,0 +1,21 @@
+STATEMENT OF ACCOUNT
+Account: Keynvor Morlift Ltd
+Bill to: Keynvor Morlift Ltd
+Statement date: not stated
+Due date: not stated for each invoice
+Six invoices dated between 2022-05-05 and 2022-08-31, amounts inclusive of VAT:
+- First two invoices from 2022-05-05 (numbers not stated) | qty 1 | £28,800.00
+- Invoices 02185, 02190, 02194 and 02200 incl. invoice dated 2022-06-30, to 2022-08-31 | qty 1 | £889,671.79
+Total invoiced: £918,471.79 including VAT
+Disputed four invoices ex VAT: £741,393.16
+Charges shown on the invoices include:
+  Invoice 02185: transportation of UTV-670 and other equipment £21,903.00 ex VAT (uplift column marked 10%); additional equipment £33,650.76 ex VAT incl. 10% uplift; personnel flights £11,184.11 plus 10% = £12,302.52
+  Invoice 02190: personnel flights £12,281.76 plus 10% = £13,509.94; employee flights £4,841.36 plus 5% = £5,083.43
+  Invoice 02194: UTV-670 transit 19 to 26 August 2022 £34,000.00
+  Invoice 02200: personnel flights £8,388.86 plus 10% = £9,227.75; employee flights £6,070.35 plus 5% = £6,373.87
+  Equipment spread and personnel charged per day at actual personnel numbers, including waiting on weather days, plus personnel daily expenses.
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Pharos Offshore v Keynvor Morlift [2025] EWHC 1764 (TCC), paras 5, 186-187, 193, 197-199.
+Individual totals, dates and full lines not stated; £28,800.00 derived (£918,471.79 less £889,671.79); 02185-02200 as the four disputed ones is inferred.

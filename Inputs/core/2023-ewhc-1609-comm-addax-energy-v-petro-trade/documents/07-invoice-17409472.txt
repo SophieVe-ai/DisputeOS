@@ -1,0 +1,14 @@
+INVOICE
+Invoice number: 17409472
+Invoice date: 2020-08-07
+Due date: 2020-12-04
+Bill to: Petro Trade Inc
+Currency: USD
+Contract reference: Term Agreement 2018 to 2019 Gasoil Mogas
+- Mogas ex M/T Ance, 1,678.81 MT released 6 August 2020 | qty 1 | 1,062,602.79
+Total due: USD 1,062,602.79
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Addax Energy SA v Petro Trade Inc [2023] EWHC 1609 (Comm), paras 1, 122(9)-(11), 131(5), 137 (bundle ref G/3334).
+Unit price and line breakdown not stated; lump sum shown. Sum demanded by 4 December 2020; strictly 90 days from the 6 August 2020 release would be 4 November 2020.

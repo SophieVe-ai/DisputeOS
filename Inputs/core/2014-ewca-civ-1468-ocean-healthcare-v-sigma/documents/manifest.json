@@ -1,0 +1,13 @@
+{
+  "name": "Sigma Pharmaceuticals v Ocean Healthcare",
+  "description": "Pharmaceutical goods supplied to a small pharmacy in 2008-2009; the pharmacy refuses £21,376.71 of 2008 invoices, saying the goods were never ordered or delivered and the signed delivery notes are forged.",
+  "files": [
+    "01-delivery-note-2008-04-30.txt",
+    "02-invoice-2008-05-30.txt",
+    "03-delivery-note-2008-05-30.txt",
+    "04-invoices-disputed-2008.txt",
+    "05-statement-of-account-2009-11-15.txt",
+    "06-letter-from-ocean-denying-claim.eml",
+    "07-letter-from-ocean-signatures.eml"
+  ]
+}

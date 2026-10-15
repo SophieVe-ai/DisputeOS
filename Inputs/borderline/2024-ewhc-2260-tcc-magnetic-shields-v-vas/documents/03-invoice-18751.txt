@@ -1,0 +1,14 @@
+INVOICE
+Invoice number: 18751
+Invoice date: 2021-02-22
+Due date: not stated
+Bill to: Magnetic Shields Ltd
+Payment terms: as per Vacuum and Atmosphere Services Ltd terms (details not stated)
+- Three replacement heating elements for the Abar HR50 furnace | qty 1 | £1,830.65
+- VAT | qty 1 | £366.13
+Total due: £2,196.78
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Magnetic Shields v Vacuum and Atmosphere Services [2024] EWHC 2260 (TCC), paras 55, 58.
+Due date and VAS term wording not stated; items shown as one lump sum plus VAT.

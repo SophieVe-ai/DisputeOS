@@ -1,0 +1,20 @@
+REVISED PURCHASE ORDER
+Contract reference: Revised Purchase Order replacing PO 16249 (number not stated)
+Contract date: 2022-05-23
+Supplier: Pharos Offshore Group Ltd
+Customer: Keynvor Morlift Ltd
+Payment terms: 60 days from delivery (KML terms, clause 7); amendment requested by Pharos on 2022-05-25 and then agreed
+Scope: As PO 16249, per indicative programme, with additional equipment for survey fit-out and sword extension.
+Pricing:
+- Project management and documentation (lump sum) | qty 1 | £24,000.00
+- UTV-670 equipment spread, daily charge | qty 10 | £4,250.00 per day
+- Pharos personnel (7 persons at £650.00), daily charge | qty 10 | £4,550.00 per day
+- Additional equipment at cost+10%, value NTE | qty 1 | £81,000.00
+Transportation of equipment: at cost plus 5%
+Terms: KML standard terms and conditions re-attached (as PO 16249).
+Issued by: Paul Scullion, Keynvor Morlift Ltd, circulated 2022-05-25
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Pharos Offshore v Keynvor Morlift [2025] EWHC 1764 (TCC), paras 38-48, 64, 85, 187, 189, 197.
+The words "Plus weather downtime at applicable rates" in PO 16249 do not appear in this version. Pharos asked for 30 days in place of 60; the amended number of days is not stated.

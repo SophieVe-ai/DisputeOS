@@ -1,0 +1,28 @@
+PROCUREMENT AGREEMENT
+Contract reference: Procurement Agreement (LGT / Dardanel)
+Contract date: 2016-01-19
+Supplier: Longulf Trading (UK) Ltd
+Customer: Dardanel Onentas Gida Sanayi A.S.
+Guarantor: Niyazi Onen Gida San. A.S. and the personal guaranty of Mr Niyazi Onen
+Currency: USD
+Payment terms: 20% within 45 days, 30% within 90 days, 30% within 135 days and the remaining 20% within 180 days from LGT's payment for such Goods, or the last day of the Term if earlier (clause 1.4(a))
+Term: extended by the 5th Amendment to 2019-01-19
+Pricing:
+- Goods (seafood) procured by LGT and resold to the Company at the price stated in the applicable Company Purchase Order and Commercial Invoice
+- Procurement Fee: 1.25% of the Average Daily Outstanding for the Applicable Month, payable on the first Business Day of each month (clause 3.1)
+
+Key terms:
+1.1 LGT appointed to procure seafood for resale to the Company and to be the Company's sole agent. Company Procurement Orders are irrevocable once submitted; if LGT accepts, it places the order and resells the goods to the Company.
+1.4(a) Company shall be obligated to take delivery of all Goods purchased by LGT under a LGT Purchase Order issued in response to a Company Procurement Order, and to pay for such Goods in accordance with the terms above.
+3.9 Late Payments. Any amount payable by Company not paid when due shall accrue interest, payable on demand, at the Default Rate, computed from the due date of such payment until such amount is paid in full.
+8.1 "Default Rate" means a rate of 15% per annum in addition to the Procurement Fees, but not in excess of the maximum rate permitted by applicable law.
+6.1 Events of Default include (a) failure by Company to pay to LGT any amount within ten (10) Business Days after the date when such amount became due and payable, and (e) failure to pay any principal of any debt when due in an aggregate outstanding principal amount in excess of $100,000.
+7.3 Rights to all overdue sums survive termination.
+9.5 Expenses: Company liable for LGT's costs and expenses of enforcing its rights.
+Recital: LGT is "willing to enter into this Agreement only if Guarantor guarantees all of the obligations of Company hereunder and Guarantor has agreed to do so".
+Signed: Mr Niyazi Onen as Chairman of Dardanel and of Niyazi Onen Gida San. A.S.; signatory for Longulf not stated
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Longulf Trading v Niyazi Onen Gida [2019] EWHC 1573 (Comm), paras 9, 10, 15, 17, 18, 21, 34, 35, 42, 52.
+The guarantee preamble dates this document 19 November 2016; the judge uses 19 January 2016. Five later amendments (dates not stated) are not reproduced.

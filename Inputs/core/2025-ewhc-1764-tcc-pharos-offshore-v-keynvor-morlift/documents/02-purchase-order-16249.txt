@@ -1,0 +1,29 @@
+PURCHASE ORDER 16249
+Contract reference: PO 16249
+Contract date: 2022-05-10
+Supplier: Pharos Offshore Group Ltd
+Customer: Keynvor Morlift Ltd
+Payment terms: 60 days from delivery, provided the goods and services are in accordance with any applicable Specification and the terms of the Contract (KML terms, clause 7)
+Scope: Burial of the Viking Link cable off Henne Strand, Jutland, using the UTV-670 jet trenching vehicle, supporting equipment and Pharos personnel, per indicative programme. Quotation for survey equipment yet to be agreed.
+Pricing:
+- Project management and documentation (lump sum) | qty 1 | £24,000.00
+- UTV-670 equipment spread, daily charge | qty 10 | £4,250.00 per day
+- Pharos personnel (7 persons at £650.00), daily charge | qty 10 | £4,550.00 per day
+Total: £112,000.00 plus VAT
+Plus weather downtime at applicable rates
+Terms: KML standard terms and conditions apply, including:
+2.2 The Purchase Order constitutes an offer by the Buyer to purchase the Goods subject to these Conditions and supersedes all prior discussions and negotiations.
+3.1 No variation of these Conditions or of the Contract shall be effective unless agreed in writing between an authorised representative of the Seller and an authorised representative of the Buyer.
+4.1 The Seller warrants that the Goods or Services shall be of satisfactory quality and free from defects in design, material or workmanship and be fit for their intended purpose.
+6 The Contract Price is fixed and firm and cannot be increased without the Buyer's prior written consent.
+7 The Buyer reserves the right to set off any sum of money owing at any time by the Seller to the Buyer against any sum payable by the Buyer to the Seller.
+8.2 The Seller shall deliver the Goods or Services by the date specified in the Purchase Order.
+8.3 Should the Seller fail to deliver by the specified date, the Buyer shall be entitled to 10% of the total Contract Price due in respect of those delayed Goods or Services for each week (or part thereof).
+12.1 The Buyer may reject non-compliant Goods or Services by notice in writing to the Seller given within 14 days or such other period as may be agreed.
+18 The Seller shall be deemed to have satisfied itself as to climatic, sea, water and weather conditions and all other matters which could affect progress or performance.
+Issued by: Keynvor Morlift Ltd, sent under cover of email dated 2022-05-16
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Pharos Offshore v Keynvor Morlift [2025] EWHC 1764 (TCC), paras 21, 34-35, 46, 60, 64, 67, 72, 189, 192.
+The PO table is not reproduced in the judgment text; the £4,250 daily equipment rate is taken from paras 21 and 192 (51 days = £216,750), the 7 x £650 personnel rate from para 72.

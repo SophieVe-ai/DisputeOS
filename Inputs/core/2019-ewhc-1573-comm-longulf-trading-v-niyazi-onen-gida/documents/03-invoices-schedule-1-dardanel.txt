@@ -1,0 +1,13 @@
+INVOICES SCHEDULE 1
+Invoice number: 18 invoices per Schedule 1, including nos 10148 and 10160
+Invoice date: 2016-09-27 (first invoice; last invoice dated 2017-02-17)
+Due date: 2017-02-23 (first instalment; last falling due 2017-08-15)
+Bill to: Dardanel Onentas Gida Sanayi A.S.
+Currency: USD
+- Seafood procured and resold under the Procurement Agreement, 18 instalments falling due 2017-02-23 to 2017-08-15 | qty 1 | 2,472,615.00
+Total due: USD 2,472,615.00
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Longulf Trading v Niyazi Onen Gida [2019] EWHC 1573 (Comm), paras 18-20, 32.
+The 18 individual amounts and due dates are in Schedule 1, which is not reproduced in the published text; shown as one lump sum.

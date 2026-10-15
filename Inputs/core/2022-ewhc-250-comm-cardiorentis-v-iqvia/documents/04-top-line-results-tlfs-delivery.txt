@@ -1,0 +1,11 @@
+TOP LINE RESULTS TLFS TRUE-AHF
+Delivery date: 2016-03-24
+Site: delivered to Cardiorentis AG
+- Tables, Listings and Figures, including Table 14.2.1.1 (top line result) | qty 1
+Signed by: not stated (IQVIA biostatistics)
+Condition notes: Delivered within 13 business days of Database Lock. Updated version sent 2016-04-19 correcting various figures; in Table 14.2.1.1 patients on ularitide "worsened" changed from 72.3 (6.6%) to 70.7 (6.5%), on placebo from 88.7 (8.3%) to 87.6 (8.2%), and the p-value from 0.830 to 0.824.
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Cardiorentis v IQVIA [2022] EWHC 250 (Comm), paras 475-477.
+Date of Database Lock not stated here.

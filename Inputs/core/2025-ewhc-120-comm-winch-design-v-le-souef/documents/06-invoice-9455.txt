@@ -1,0 +1,13 @@
+INVOICE
+Invoice number: 9455
+Invoice date: 2021-04-27
+Due date: 2021-05-27
+Bill to: Somnio Superyachts Pty Ltd
+Project: Project 1399 Somnio
+- Second instalment, updated Payment Schedule (Addendum dated 9 April 2021) | qty 1 | £197,500.00
+Total due: £197,500.00
+
+--
+RECONSTRUCTED FROM THE PUBLISHED JUDGMENT. Not an original document.
+Source: Winch Design v Le Souef [2025] EWHC 120 (Comm), paras 9.2, 13.13, 26, 69.
+Line breakdown not stated; single instalment line. Due date computed as 30 days from issue under clause 5.6. Addressed to Somnio, not Mr Le Souef.
