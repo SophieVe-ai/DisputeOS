@@ -1,13 +1,17 @@
 // End-to-end smoke test against a running stack (chain + deployed contract + Next server).
 // Exercises the critical flow: upload documents → run agents → human approval →
-// on-chain verification → tamper detection. The app starts empty, so the case comes
+// debtor replies wake the Negotiation agent → settlement → on-chain verification → tamper detection. The app starts empty, so the case comes
 // from the Ashford sample pack through the real intake API.
 import fs from "node:fs";
 import path from "node:path";
 
 const BASE = process.env.BASE_URL ?? "http://127.0.0.1:3000";
 const PACK_DIR = path.join(process.cwd(), "public", "samples", "ashford");
-const TIMEOUT_MS = 90_000;
+// Claude mode makes several model calls per run; raise with SMOKE_TIMEOUT_MS if needed.
+const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS ?? 90_000);
+
+/** An error that should stop waiting immediately instead of being retried until the timeout. */
+class Fatal extends Error {}
 
 async function call(path, init) {
   const isForm = init?.body instanceof FormData;
@@ -27,7 +31,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function waitFor(fn, label) {
   const deadline = Date.now() + TIMEOUT_MS;
   while (Date.now() < deadline) {
-    const v = await fn().catch(() => null);
+    const v = await fn().catch((err) => {
+      if (err instanceof Fatal) throw err;
+      return null;
+    });
     if (v) return v;
     await sleep(1000);
   }
@@ -56,7 +63,7 @@ async function main() {
   await call(`/api/cases/${CASE_ID}/runs`, { method: "POST", body: JSON.stringify({ requestedBy: "CI Bot" }) });
   const detail = await waitFor(async () => {
     const d = await call(`/api/cases/${CASE_ID}`);
-    if (d.run?.status === "failed") throw new Error(`run failed: ${d.run.error}`);
+    if (d.run?.status === "failed") throw new Fatal(`run failed: ${d.run.error}`);
     return d.run?.status === "awaiting_approval" ? d : null;
   }, "agents to finish");
   assert(detail.steps.every((s) => s.status === "done"), "all four agents completed");
@@ -67,6 +74,30 @@ async function main() {
     body: JSON.stringify({ decision: "approve", approver: "CI Bot" }),
   });
   assert(approved.status === "executed", "approved action executed");
+
+  // ---- Long-running negotiation: send the letter, then let debtor replies drive the agent ----
+  const decide = (id, decision) => call(`/api/proposals/${id}/decision`, { method: "POST", body: JSON.stringify({ decision, approver: "CI Bot" }) });
+  for (const p of detail.proposals.slice(1)) await decide(p.id, p.kind === "send_letter_before_action" ? "approve" : "reject");
+  let state = await call(`/api/cases/${CASE_ID}`);
+  assert(state.run.status === "awaiting_response" && state.nextWakeup?.kind === "deadline", "letter sent; agent asleep with a follow-up timer");
+  const floor = state.negotiation.floorPence;
+
+  const nextMove = async (body, label) => {
+    await call(`/api/cases/${CASE_ID}/replies`, { method: "POST", body: JSON.stringify({ from: "Ashford Hotel Group", body }) });
+    return waitFor(async () => {
+      const d = await call(`/api/cases/${CASE_ID}`);
+      if (d.turns.some((t) => t.status === "failed")) throw new Fatal(`negotiation turn failed: ${d.turns.find((t) => t.status === "failed").error}`);
+      return d.run.status === "awaiting_approval" ? d.proposals.find((p) => p.status === "pending") : null;
+    }, label);
+  };
+  const counter = await nextMove("We are prepared to pay £2,000.00 in full and final settlement.", "agent to answer the low offer");
+  assert(counter.kind === "offer_settlement" && counter.amountPence === floor, `low offer woke the agent; it countered at the defensible ${floor / 100}`);
+  await decide(counter.id, "approve");
+  const close = await nextMove(`We have paid £${(floor / 100).toFixed(2)} by bank transfer today.`, "agent to read the payment");
+  assert(close.kind === "close_case", "payment reply woke the agent; it proposed closing as settled");
+  await decide(close.id, "approve");
+  state = await call(`/api/cases/${CASE_ID}`);
+  assert(state.run.status === "completed" && state.case.status === "resolved", "negotiation settled and the case resolved");
 
   const clean = await waitFor(async () => {
     const r = await call("/api/ledger/verify", { method: "POST", body: "{}" });

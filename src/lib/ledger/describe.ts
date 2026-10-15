@@ -37,6 +37,10 @@ function describeCompleted(agent: string, output: Payload): string {
     }
     case "resolution":
       return `Resolution finished: ${plural(arr(output, "proposals").length, "action")} drafted for human approval.`;
+    case "negotiation": {
+      const drafted = arr(output, "proposals").length;
+      return `Negotiation agent decided: ${human(str(output, "decision") ?? "review")}${drafted ? `. ${plural(drafted, "action")} drafted for human approval` : ". Nothing to send; still waiting"}.`;
+    }
     default:
       return `${cap(agent)} agent finished.`;
   }
@@ -56,6 +60,7 @@ function describeAgentAction(agent: string, step: string, p: Payload): string | 
       if (agent === "reconciliation") return `Reconciliation started checking ${plural(num(p, "invoices") ?? 0, "invoice")} against the contract and deliveries.`;
       if (agent === "challenge") return `Challenge agent started arguing the debtor's side (${plural(num(p, "disputes") ?? 0, "complaint")} on file).`;
       if (agent === "resolution") return `Resolution agent started drafting (strategy: ${human(str(p, "recommendation") ?? "review")}).`;
+      if (agent === "negotiation") return `Negotiation agent woke up: ${str(p, "trigger") === "reply" ? "a reply arrived" : "a follow-up deadline passed"} (${str(p, "reason") ?? "scheduled"}).`;
       return `${who} started.`;
     case "facts_extracted": {
       const title = str(p, "title") ?? "document";
@@ -77,6 +82,16 @@ function describeAgentAction(agent: string, step: string, p: Payload): string | 
     }
     case "document_drafted":
       return `Drafted for approval: ${str(p, "title") ?? human(str(p, "kind") ?? "document")}.`;
+    case "discarded":
+      return `Negotiation agent's result was discarded (${str(p, "reason") ?? "case changed"}); nothing was drafted.`;
+    case "reply_classified": {
+      const amount = num(p, "amountPence");
+      const date = str(p, "promisedDate");
+      const via = str(p, "source") === "claude" ? " with Claude" : "";
+      return `Read the debtor's reply${via}: ${human(str(p, "intent") ?? "unclear")}${amount === null ? "" : `, ${formatPence(amount)}`}${date ? `, by ${date}` : ""}.`;
+    }
+    case "position_assessed":
+      return `Position: ${money(num(p, "demandPence"))} on the table; will not settle below ${money(num(p, "floorPence"))}.`;
     default:
       return null;
   }
@@ -89,7 +104,21 @@ function describeOther(actor: string, action: string, p: Payload): string | null
     case "run.requested":
       return `${actorName(actor)} started the agent pipeline.`;
     case "run.awaiting_approval":
-      return `All agents finished. ${plural(arr(p, "proposals").length, "drafted action")} now wait for a human decision.`;
+      return str(p, "turnId")
+        ? `The Negotiation agent's next move (${plural(arr(p, "proposals").length, "drafted action")}) now waits for a human decision.`
+        : `All agents finished. ${plural(arr(p, "proposals").length, "drafted action")} now wait for a human decision.`;
+    case "run.awaiting_response": {
+      const next = str(p, "nextWakeAt");
+      return `Waiting for the debtor's reply. The Negotiation agent wakes when one arrives${next ? `, or on ${next.slice(0, 10)} if none does` : ""}.`;
+    }
+    case "correspondence.received":
+      return `Reply received from ${actorName(actor)}: “${str(p, "subject") ?? "no subject"}”. ${p.queued ? "Queued until the pending decisions are made." : "The Negotiation agent has been woken to read it."}`;
+    case "followup.scheduled":
+      return `Follow-up timer set for ${(str(p, "dueAt") ?? "").slice(0, 10)} (${num(p, "days") ?? "?"} days): ${str(p, "reason") ?? "if no reply"}.`;
+    case "clock.fast_forwarded":
+      return `Demo clock advanced: the follow-up due ${(str(p, "originalDueAt") ?? "").slice(0, 10)} fires now.`;
+    case "run.closed":
+      return `${actorName(actor)} stopped the follow-up and closed the case.`;
     case "approval.granted":
     case "approval.rejected": {
       const note = str(p, "note");
@@ -98,8 +127,12 @@ function describeOther(actor: string, action: string, p: Payload): string | null
     }
     case "action.executed":
       return str(p, "result") ?? "Approved action executed.";
-    case "run.completed":
-      return `Run closed: ${num(p, "executed") ?? 0} executed, ${num(p, "rejected") ?? 0} rejected.`;
+    case "run.completed": {
+      const outcome = str(p, "outcome");
+      const ended = outcome === "close_case" ? " Case settled." : outcome === "escalate_court_claim" ? " Escalated to a court claim." : "";
+      const unread = num(p, "unreadReplies") ?? 0;
+      return `Run closed: ${num(p, "executed") ?? 0} executed, ${num(p, "rejected") ?? 0} rejected.${ended}${unread ? ` ${plural(unread, "queued reply")} left unanswered.` : ""}`;
+    }
     case "run.failed":
       return `Run stopped after repeated failures: ${str(p, "error") ?? "unknown error"}.`;
     case "eval.completed":

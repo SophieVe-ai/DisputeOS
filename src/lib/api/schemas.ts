@@ -39,6 +39,18 @@ export const DecisionSchema = z.object({
 export const VerifySchema = z.object({ caseId: z.string().max(100).optional() });
 export const TamperSchema = z.object({ caseId: z.string().min(1).max(100) });
 
+const Sender = z.string().trim().min(2).max(120).regex(/^[\p{L}\p{N} .,'&@()_+-]+$/u, "Use letters, numbers, spaces and . , ' & @ ( ) _ + -");
+
+/** An inbound reply from the debtor: posted by the UI, or by an inbound-email webhook. */
+export const ReplySchema = z.object({
+  from: Sender,
+  subject: z.string().trim().min(1).max(200).nullable().default(null),
+  body: z.string().trim().min(1).max(MAX_DOC_CHARS),
+});
+
+export const CloseEngagementSchema = z.object({ closedBy: Person });
+export const FastForwardSchema = z.object({ caseId: z.string().min(1).max(100) });
+
 // ---------- Accounts ----------
 
 // Free mailbox providers: an address at one of these does not identify a business.

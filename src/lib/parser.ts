@@ -113,7 +113,7 @@ export function parsePayment(doc: CaseDocument): PaymentFacts | null {
   };
 }
 
-const DISPUTE_PATTERNS: { type: DisputeType; re: RegExp }[] = [
+export const DISPUTE_PATTERNS: { type: DisputeType; re: RegExp }[] = [
   { type: "non_receipt", re: /\b(never received|not received|did not receive|didn't receive|no delivery)\b/i },
   { type: "damage", re: /\b(damaged|broken|cracked|scratched|dented|defective)\b/i },
   { type: "shortfall", re: /\b(short[- ]delivered|shortfall|missing|only received)\b/i },

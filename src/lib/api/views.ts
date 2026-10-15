@@ -6,7 +6,10 @@ import { getLlm } from "../agents/llm";
 import { workerStatus } from "../orchestrator/worker";
 import { getDocuments, getCase, listCases } from "../repo/cases";
 import { countPendingProposals, listProposals } from "../repo/proposals";
+import { currentDemandPence } from "../negotiation/agent";
+import { listMessages } from "../repo/correspondence";
 import { getSteps, latestRunForCase } from "../repo/runs";
+import { listWakeups, nextScheduledWakeup } from "../repo/wakeups";
 import type { ChallengeOutput } from "../types";
 
 export function caseSummaries() {
@@ -26,12 +29,21 @@ export function caseDetail(id: string) {
   const caseFile = getCase(id);
   if (!caseFile) return null;
   const run = latestRunForCase(id);
+  const proposals = run ? listProposals(run.id) : [];
+  const challenge = run ? (getSteps(run.id)[2]?.output as ChallengeOutput | null) : null;
   return {
     case: caseFile,
     documents: getDocuments(id),
     run,
     steps: run ? getSteps(run.id) : [],
-    proposals: run ? listProposals(run.id) : [],
+    proposals,
+    negotiation: {
+      demandPence: currentDemandPence(proposals.filter((p) => p.status === "executed")),
+      floorPence: challenge?.defensiblePrincipalPence ?? null,
+    },
+    correspondence: run ? listMessages(run.id) : [],
+    turns: run ? listWakeups(run.id) : [],
+    nextWakeup: run ? nextScheduledWakeup(run.id) : null,
   };
 }
 

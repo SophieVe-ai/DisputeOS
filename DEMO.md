@@ -26,6 +26,13 @@ You land on the case. The banner at the top says what's happening; the pipeline 
 The banner now says the drafted actions need your decision. Enter your name in the **Approval gate**, open the letter and **Approve & execute**. Reject the court pack: "not yet." Both decisions appear in the chain log under your name.
 > "Agents never act on their own. Every decision is signed by a named person and recorded on-chain."
 
+### 4b. The debtor answers back (45s): long-running agents
+Once the letter is approved, the banner reads **Waiting for Kestrel Developments to reply** and the pipeline's sixth node, **Negotiation**, shows *listening*. The agent is asleep, with a timer for the 14-day deadline.
+- In **Log a reply**, click the sample **Low offer**, then **Log reply & wake agent**. The node spins, the chain log shows the reply arriving under the debtor's name, and the agent reads it as a *counter offer*. It refuses to go below the defensible £11,765 and drafts a without-prejudice counter-offer at exactly that figure. Approve it.
+- Click **Says paid**: the agent proposes closing the case as settled, and the memo tells you to check the bank first. Approve it, and the case is **resolved**.
+- Or show silence instead: click **Fast-forward to deadline** (logged as the demo clock). The agent wakes with no reply, drafts a final reminder, and on the next deadline escalates to a court-claim pack.
+> "The agents don't stop at one letter. They wait as long as the dispute takes, wake the moment the other side replies, and never act without you."
+
 ### 5. Honesty as a feature (20s)
 Upload the **Peak Catering v Ashford Hotel Group** sample. The Challenge agent finds **we** overcharged (£4.20 vs £3.95 contract price) and short-delivered 4 cases. The first proposed action is a **£614 credit note**, before demanding the rest.
 > "It tells you when *you're* wrong, before the court does."
