@@ -3,6 +3,7 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AuthMenu } from "@/components/AuthMenu";
 import { Nav } from "@/components/Nav";
 import { SystemBar } from "@/components/SystemBar";
 import { Logo } from "@/components/ui/icons";
@@ -26,7 +27,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </Link>
             <span aria-hidden className="h-4 w-px bg-line-2" />
             <Nav />
-            <div className="ml-auto hidden md:block"><SystemBar /></div>
+            <div className="ml-auto flex items-center gap-4">
+              <div className="hidden md:block"><SystemBar /></div>
+              <AuthMenu />
+            </div>
           </div>
         </header>
         <main className="mx-auto max-w-[1400px] px-6 py-10">{children}</main>

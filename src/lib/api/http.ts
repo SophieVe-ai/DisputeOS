@@ -4,6 +4,7 @@ import { ApprovalRequiredError, DecisionError, ForbiddenError } from "../orchest
 import { EngagementError } from "../orchestrator/engagement";
 import { RunConflictError } from "../orchestrator/runner";
 import { boot } from "../boot";
+import { EmailTakenError, InvalidCredentialsError } from "../auth/accounts";
 
 export interface ApiEnvelope<T> {
   success: boolean;
@@ -26,7 +27,9 @@ export async function handle<T>(fn: () => Promise<NextResponse<ApiEnvelope<T>>> 
     return await fn();
   } catch (err) {
     if (err instanceof ZodError) return fail(err.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "), 400);
+    if (err instanceof InvalidCredentialsError) return fail(err.message, 401);
     if (err instanceof ForbiddenError) return fail(err.message, 403);
+    if (err instanceof EmailTakenError) return fail(err.message, 409);
     if (err instanceof RunConflictError || err instanceof DecisionError || err instanceof EngagementError) return fail(err.message, 409);
     if (err instanceof ApprovalRequiredError) return fail(err.message, 412);
     console.error("[api] unhandled error", err);

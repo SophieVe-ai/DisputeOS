@@ -166,6 +166,26 @@ CREATE TABLE IF NOT EXISTS eval_runs (
   finished_at TEXT
 );
 
+-- User accounts. Business accounts must name their business; emails are stored lower-cased.
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  account_type TEXT NOT NULL CHECK (account_type IN ('business', 'other')),
+  business_name TEXT,
+  created_at TEXT NOT NULL,
+  CHECK (account_type = 'other' OR business_name IS NOT NULL)
+);
+
+-- Signed-in sessions. Only a hash of the cookie token is stored.
+CREATE TABLE IF NOT EXISTS sessions (
+  token_hash TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_ledger_case ON ledger_entries(case_id);
 CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
 CREATE INDEX IF NOT EXISTS idx_correspondence_run ON correspondence(run_id);
@@ -181,7 +201,7 @@ CREATE TRIGGER ledger_no_delete BEFORE DELETE ON ledger_entries FOR EACH ROW EXE
 `;
 
 /** Tables in dependency order (children first), for test resets. */
-export const TABLES = ["eval_runs", "run_wakeups", "correspondence", "ledger_anchors", "ledger_entries", "proposals", "run_steps", "runs", "documents", "cases"];
+export const TABLES = ["sessions", "users", "eval_runs", "run_wakeups", "correspondence", "ledger_anchors", "ledger_entries", "proposals", "run_steps", "runs", "documents", "cases"];
 
 /** Numbers `?` placeholders as `$1, $2, …` (none of our SQL uses `?` inside string literals). */
 export function numberPlaceholders(text: string): string {
