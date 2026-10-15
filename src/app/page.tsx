@@ -1,9 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePoll } from "@/components/api";
+import { ChainConsole } from "@/components/ChainConsole";
 import { money, pct } from "@/components/format";
+import { HeroGraph } from "@/components/HeroGraph";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { SystemStatus } from "@/components/SystemBar";
+import { IconArrowRight, IconPlus } from "@/components/ui/icons";
+import { CountUp, Reveal, WordReveal } from "@/components/ui/motion";
 
 interface CaseSummary {
   id: string;
@@ -19,13 +23,17 @@ interface CaseSummary {
   confidence: number | null;
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+const poundsWhole = (pence: number) => money(Math.round(pence / 100) * 100).replace(/\.00$/, "");
+
+function Stat({ label, value, format, hint, delay }: { label: string; value: number | null | undefined; format: (n: number) => string; hint: string; delay: number }) {
   return (
-    <div className="card p-5">
+    <Reveal delay={delay} className="card frame p-5">
       <div className="label">{label}</div>
-      <div className="mt-2 text-3xl font-bold tabular-nums">{value}</div>
-      {hint && <div className="mt-1 text-xs text-ink-3">{hint}</div>}
-    </div>
+      <div className="mt-4 text-[32px] font-light leading-none tracking-[-0.03em]">
+        <CountUp value={value} format={format} />
+      </div>
+      <div className="mt-3 text-[12px] text-ink-3">{hint}</div>
+    </Reveal>
   );
 }
 
@@ -34,75 +42,98 @@ export default function Dashboard() {
   const { data: system } = usePoll<SystemStatus>("/api/system", 2500);
 
   return (
-    <div className="space-y-8">
-      <section className="card relative overflow-hidden p-8">
-        <div aria-hidden className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
-        <p className="label text-accent-2">AI-native dispute resolution for UK SMEs</p>
-        <h1 className="mt-2 max-w-3xl text-3xl font-bold leading-tight md:text-4xl">
-          UK businesses were owed about <span className="text-accent-2">£26.5 billion</span> in late payments last year.
-          DisputeOS gets it back. You stay in control.
-        </h1>
-        <p className="mt-3 max-w-3xl text-ink-2">
-          Four autonomous agents gather evidence, reconcile the numbers, argue the debtor&apos;s side and draft the response.
-          Every step is hash-chained and anchored on-chain, and nothing is sent without your approval.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2 text-xs text-ink-2">
-          {["1 · Evidence", "2 · Reconciliation", "3 · Challenge", "4 · Resolution", "5 · Human approval"].map((s) => (
-            <span key={s} className="rounded-full border border-line px-3 py-1">{s}</span>
-          ))}
+    <div className="space-y-14">
+      <section className="grid items-center gap-10 lg:grid-cols-[1.05fr_1fr]">
+        <div>
+          <Reveal className="flex items-center gap-3">
+            <span className="h-px w-8 bg-ink-3" />
+            <span className="label">Autonomous dispute resolution · UK SMEs</span>
+          </Reveal>
+          <h1 className="mt-6 text-[40px] font-normal leading-[1.05] tracking-[-0.035em] md:text-[56px]">
+            <WordReveal delayMs={120}>UK businesses are owed</WordReveal>
+            <span className="word text-ink-3" style={{ animationDelay: "320ms" }}>£26.5bn</span>{" "}
+            <WordReveal delayMs={380}>in late payments.</WordReveal>
+            <br />
+            <WordReveal delayMs={560}>Recover it, provably fairly.</WordReveal>
+          </h1>
+          <Reveal delay={800}>
+            <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-ink-2">
+              Four agents gather evidence, reconcile the numbers, argue the debtor&apos;s side and draft the response.
+              Every action is hash-chained and written to an on-chain audit log. Nothing leaves without a named human&apos;s approval.
+            </p>
+          </Reveal>
+          <Reveal delay={950} className="mt-8 flex flex-wrap gap-3">
+            <a href="#disputes" className="btn btn-primary">View disputes <IconArrowRight size={14} /></a>
+            <Link href="/ledger" className="btn btn-ghost">Inspect the ledger</Link>
+          </Reveal>
         </div>
+        <Reveal delay={300} className="card frame relative p-4">
+          <div className="flex items-center justify-between px-1 pb-1">
+            <span className="label">System topology</span>
+            <StatusBadge status={system?.chain.connected ? "anchored" : "pending"} label={system?.chain.connected ? "chain live" : "chain offline"} />
+          </div>
+          <HeroGraph />
+        </Reveal>
       </section>
 
       <section aria-label="Portfolio" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Total claimed" value={money(system?.stats.claimedPence)} hint={`${system?.stats.cases ?? "—"} cases`} />
-        <Stat label="Defensible after challenge" value={money(system?.stats.defensiblePence)} hint="Principal the agents would stand behind" />
-        <Stat label="Awaiting your approval" value={String(system?.stats.awaitingApproval ?? "—")} hint="Drafted actions held at the gate" />
+        <Stat delay={0} label="Total claimed" value={system?.stats.claimedPence} format={poundsWhole} hint={`${system?.stats.cases ?? "—"} open disputes`} />
+        <Stat delay={80} label="Defensible after challenge" value={system?.stats.defensiblePence} format={poundsWhole} hint="Principal the agents would stand behind" />
+        <Stat delay={160} label="Awaiting approval" value={system?.stats.awaitingApproval} format={(n) => String(Math.round(n))} hint="Drafted actions held at the gate" />
         <Stat
-          label="Ledger entries on-chain"
-          value={system ? `${system.ledger.anchored}/${system.ledger.total}` : "—"}
-          hint={system?.chain.connected ? `Anchored on ${system.chain.network}` : "Chain offline — entries queued"}
+          delay={240}
+          label="Entries anchored on-chain"
+          value={system?.ledger.anchored}
+          format={(n) => `${Math.round(n)} / ${system?.ledger.total ?? 0}`}
+          hint={system?.chain.connected ? `Network: ${system.chain.network}` : "Chain offline: entries queued"}
         />
       </section>
 
-      <section className="card overflow-hidden">
-        <div className="flex items-center justify-between border-b border-line px-5 py-4">
-          <h2 className="font-semibold">Disputes</h2>
-          <Link href="/cases/new" className="btn btn-primary">+ New case</Link>
-        </div>
-        {error && <p role="alert" className="px-5 py-3 text-sm text-bad">Couldn&apos;t load cases: {error}</p>}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-left text-ink-3">
-              <tr>
-                <th className="px-5 py-3 font-medium">Case</th>
-                <th className="px-5 py-3 font-medium">Debtor</th>
-                <th className="px-5 py-3 text-right font-medium">Claimed</th>
-                <th className="px-5 py-3 text-right font-medium">Defensible</th>
-                <th className="px-5 py-3 text-right font-medium">Confidence</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cases?.map((c) => (
-                <tr key={c.id} className="border-t border-line hover:bg-panel-2">
-                  <td className="px-5 py-3">
-                    <Link href={`/cases/${c.id}`} className="font-medium hover:text-accent-2">{c.title}</Link>
-                    <div className="text-xs text-ink-3">{c.reference} · {c.creditor}</div>
-                  </td>
-                  <td className="px-5 py-3 text-ink-2">{c.debtor}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">{money(c.claimedAmountPence)}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">{money(c.defensiblePrincipalPence)}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">{pct(c.confidence)}</td>
-                  <td className="px-5 py-3"><StatusBadge status={c.run && ["queued", "running"].includes(c.run.status) ? "running" : c.status} /></td>
+      <div className="grid gap-6 xl:grid-cols-[1fr_440px]">
+        <Reveal as="section" delay={200} className="card frame overflow-hidden">
+          <div id="disputes" className="flex items-center justify-between border-b border-line px-5 py-3.5">
+            <div className="flex items-baseline gap-3">
+              <h2 className="text-[14px] font-medium">Disputes</h2>
+              <span className="font-mono text-[10.5px] text-ink-3">{cases?.length ?? 0}</span>
+            </div>
+            <Link href="/cases/new" className="btn btn-ghost"><IconPlus size={14} /> New case</Link>
+          </div>
+          {error && <p role="alert" className="px-5 py-3 text-sm text-bad">Couldn&apos;t load cases: {error}</p>}
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="text-left">
+                  {["Case", "Debtor", "Claimed", "Defensible", "Conf.", "Status", ""].map((h, i) => (
+                    <th key={i} className={`label px-5 py-3 font-medium ${i >= 2 && i <= 4 ? "text-right" : ""}`}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-              {cases?.length === 0 && (
-                <tr><td colSpan={6} className="px-5 py-8 text-center text-ink-3">No cases yet. Create one to get started.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
+              </thead>
+              <tbody>
+                {cases?.map((c, i) => (
+                  <tr key={c.id} className="reveal group relative border-t border-line transition-colors hover:bg-white/[.02]" style={{ animationDelay: `${300 + i * 70}ms` }}>
+                    <td className="px-5 py-4">
+                      <Link href={`/cases/${c.id}`} className="font-medium after:absolute after:inset-0">{c.title}</Link>
+                      <div className="mt-0.5 font-mono text-[10.5px] text-ink-3">{c.reference} · {c.creditor}</div>
+                    </td>
+                    <td className="px-5 py-4 text-ink-2">{c.debtor}</td>
+                    <td className="px-5 py-4 text-right tabular-nums">{money(c.claimedAmountPence)}</td>
+                    <td className="px-5 py-4 text-right tabular-nums text-ink-2">{money(c.defensiblePrincipalPence)}</td>
+                    <td className="px-5 py-4 text-right tabular-nums text-ink-2">{pct(c.confidence)}</td>
+                    <td className="px-5 py-4"><StatusBadge status={c.run && ["queued", "running"].includes(c.run.status) ? "running" : c.status} /></td>
+                    <td className="px-5 py-4 text-ink-3 transition-all duration-300 group-hover:translate-x-1 group-hover:text-ink"><IconArrowRight size={14} /></td>
+                  </tr>
+                ))}
+                {cases?.length === 0 && (
+                  <tr><td colSpan={7} className="px-5 py-10 text-center text-ink-3">No cases yet. Create one to get started.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Reveal>
+        <Reveal delay={300}>
+          <ChainConsole heightClass="h-[300px]" />
+        </Reveal>
+      </div>
     </div>
   );
 }

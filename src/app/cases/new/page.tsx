@@ -3,6 +3,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/components/api";
 import { DOC_KINDS, type DocKind } from "@/lib/types";
+import { IconArrowRight, IconPlus, IconX } from "@/components/ui/icons";
+import { Reveal } from "@/components/ui/motion";
 
 interface DraftDoc { kind: DocKind; title: string; content: string; docDate: string }
 
@@ -55,45 +57,49 @@ export default function NewCasePage() {
   const field = (key: keyof typeof form, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (
     <label className="block">
       <span className="label">{label}</span>
-      <input className="input mt-1" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} {...props} />
+      <input className="input mt-1.5" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} {...props} />
     </label>
   );
 
   return (
-    <form onSubmit={submit} className="space-y-6">
-      <h1 className="text-2xl font-bold">Open a new dispute</h1>
-      <section className="card grid gap-4 p-5 md:grid-cols-2">
+    <form onSubmit={submit} className="space-y-8">
+      <Reveal as="header" className="border-b border-line pb-8">
+        <span className="label">New case</span>
+        <h1 className="mt-3 text-[34px] font-normal tracking-[-0.03em]">Open a dispute</h1>
+        <p className="mt-3 max-w-2xl text-[14px] text-ink-2">Describe the claim and attach the case file. The agents take it from there; nothing is sent without your approval.</p>
+      </Reveal>
+      <Reveal as="section" delay={80} className="card frame grid gap-5 p-6 md:grid-cols-2">
         {field("title", "Case title", { required: true, minLength: 3 })}
         {field("claimed", "Amount claimed (£)", { required: true, inputMode: "decimal", placeholder: "12,920.00" })}
         {field("creditor", "Your company (creditor)", { required: true })}
         {field("debtor", "Debtor company", { required: true })}
         {field("debtorEmail", "Debtor accounts email", { type: "email" })}
         {field("summary", "Short summary")}
-      </section>
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold">Documents</h2>
-          <div className="flex gap-2">
+      </Reveal>
+      <Reveal as="section" delay={160} className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-[14px] font-medium">Documents <span className="ml-2 font-mono text-[10.5px] text-ink-3">{docs.length}</span></h2>
+          <div className="flex flex-wrap gap-2">
             {DOC_KINDS.filter((k) => k !== "other").map((k) => (
-              <button key={k} type="button" className="btn btn-ghost text-xs" onClick={() => setDocs([...docs, emptyDoc(k)])}>+ {k.replace("_", " ")}</button>
+              <button key={k} type="button" className="btn btn-ghost text-xs" onClick={() => setDocs([...docs, emptyDoc(k)])}><IconPlus size={12} /> {k.replace("_", " ")}</button>
             ))}
           </div>
         </div>
-        <p className="text-xs text-ink-3">Use one line per item, in the form <code>- Item | qty N | £price</code>. With an Anthropic API key, the Evidence agent also reads free-text correspondence.</p>
+        <p className="font-mono text-[11px] text-ink-3">Use one line per item, in the form <code>- Item | qty N | £price</code>. With an Anthropic API key, the Evidence agent also reads free-text correspondence.</p>
         {docs.map((d, i) => (
-          <div key={i} className="card grid gap-3 p-4 md:grid-cols-[10rem_1fr_9rem_auto]">
+          <div key={i} className="card reveal grid gap-3 p-4 md:grid-cols-[10rem_1fr_9rem_auto]">
             <select aria-label="Document type" className="input" value={d.kind} onChange={(e) => setDoc(i, { kind: e.target.value as DocKind })}>
               {DOC_KINDS.map((k) => <option key={k} value={k}>{k.replace("_", " ")}</option>)}
             </select>
             <input aria-label="Document title" className="input" placeholder="Title" value={d.title} onChange={(e) => setDoc(i, { title: e.target.value })} />
             <input aria-label="Document date" className="input" type="date" value={d.docDate} onChange={(e) => setDoc(i, { docDate: e.target.value })} />
-            <button type="button" className="btn btn-bad" onClick={() => setDocs(docs.filter((_, n) => n !== i))} aria-label="Remove document">✕</button>
+            <button type="button" className="btn btn-bad" onClick={() => setDocs(docs.filter((_, n) => n !== i))} aria-label="Remove document"><IconX size={14} /></button>
             <textarea aria-label="Document content" className="input font-mono text-xs md:col-span-4" rows={6} value={d.content} onChange={(e) => setDoc(i, { content: e.target.value })} />
           </div>
         ))}
-      </section>
+      </Reveal>
       {error && <p role="alert" className="text-sm text-bad">{error}</p>}
-      <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? "Creating…" : "Create case"}</button>
+      <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? "Creating…" : <>Create case <IconArrowRight size={14} /></>}</button>
     </form>
   );
 }

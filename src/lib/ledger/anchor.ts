@@ -32,12 +32,37 @@ export interface AnchorReceipt {
   blockNumber: number;
 }
 
+/** A decoded `EntryAnchored` log read back from the chain, with its transaction context. */
+export interface ChainEvent {
+  index: number;
+  caseKey: string;
+  entryHash: string;
+  prevHash: string;
+  actor: string;
+  action: string;
+  writer: string;
+  blockNumber: number;
+  blockHash: string;
+  blockTimestamp: number | null;
+  txHash: string;
+  logIndex: number;
+  gasUsed: string | null;
+  topics: string[];
+}
+
 export interface AnchorClient {
   info(): AnchorInfo;
   append(req: AnchorRequest): Promise<AnchorReceipt>;
   count(): Promise<number>;
   hashesInRange(from: number, to: number): Promise<string[]>;
+  latestBlock(): Promise<number>;
+  /** Most recent `EntryAnchored` logs (ascending), optionally filtered by case via the indexed topic. */
+  events(opts: { caseId?: string | null; limit: number }): Promise<ChainEvent[]>;
 }
+
+export const ENTRY_ANCHORED_TOPIC = keccakId("EntryAnchored(uint256,bytes32,bytes32,bytes32,string,string,address)");
+/** How far back to scan for logs; keeps getLogs within typical RPC range limits. */
+const EVENT_LOOKBACK_BLOCKS = 5_000;
 
 export function caseKey(caseId: string | null): string {
   return keccakId(caseId ?? "system");
@@ -46,6 +71,7 @@ export function caseKey(caseId: string | null): string {
 /** In-memory anchor with the same append-only + chain-link rules as the contract. Used in tests. */
 export class MemoryAnchor implements AnchorClient {
   private readonly hashes: string[] = [];
+  private readonly logs: ChainEvent[] = [];
   private block = 0;
 
   info(): AnchorInfo {
@@ -58,7 +84,34 @@ export class MemoryAnchor implements AnchorClient {
     if (this.hashes.includes(req.entryHash)) throw new Error("DuplicateEntry");
     this.hashes.push(req.entryHash);
     this.block += 1;
-    return { txHash: `0xtx${this.block}`, blockNumber: this.block };
+    const key = caseKey(req.caseId);
+    const txHash = `0xtx${this.block}`;
+    this.logs.push({
+      index: this.hashes.length - 1,
+      caseKey: key,
+      entryHash: req.entryHash,
+      prevHash: req.prevHash,
+      actor: req.actor,
+      action: req.action,
+      writer: "0xledger",
+      blockNumber: this.block,
+      blockHash: `0xblock${this.block}`,
+      blockTimestamp: null,
+      txHash,
+      logIndex: 0,
+      gasUsed: null,
+      topics: [ENTRY_ANCHORED_TOPIC, `0x${(this.hashes.length - 1).toString(16).padStart(64, "0")}`, key],
+    });
+    return { txHash, blockNumber: this.block };
+  }
+
+  async latestBlock(): Promise<number> {
+    return this.block;
+  }
+
+  async events(opts: { caseId?: string | null; limit: number }): Promise<ChainEvent[]> {
+    const key = opts.caseId === undefined ? null : caseKey(opts.caseId);
+    return this.logs.filter((l) => key === null || l.caseKey === key).slice(-opts.limit);
   }
 
   async count(): Promise<number> {
@@ -71,8 +124,13 @@ export class MemoryAnchor implements AnchorClient {
 }
 
 class EvmAnchor implements AnchorClient {
+  // Receipts and blocks are immutable once mined, so caching them is safe.
+  private readonly gasByTx = new Map<string, string>();
+  private readonly timeByBlock = new Map<number, number>();
+
   constructor(
     private readonly contract: Contract,
+    private readonly provider: JsonRpcProvider,
     private readonly details: AnchorInfo,
   ) {}
 
@@ -101,6 +159,57 @@ class EvmAnchor implements AnchorClient {
     if (to <= from) return [];
     const out: string[] = await this.contract.hashesInRange(from, to);
     return out.map((h) => h.toLowerCase());
+  }
+
+  async latestBlock(): Promise<number> {
+    return this.provider.getBlockNumber();
+  }
+
+  async events(opts: { caseId?: string | null; limit: number }): Promise<ChainEvent[]> {
+    const latest = await this.provider.getBlockNumber();
+    const filter = this.contract.filters.EntryAnchored(null, opts.caseId === undefined ? null : caseKey(opts.caseId));
+    const logs = (await this.contract.queryFilter(filter, Math.max(0, latest - EVENT_LOOKBACK_BLOCKS), latest)).slice(-opts.limit);
+    return Promise.all(
+      logs.map(async (log) => {
+        if (!("args" in log)) throw new Error(`Undecodable log in tx ${log.transactionHash}`);
+        const [index, key, entryHash, prevHash, actor, action, writer] = log.args as unknown as [bigint, string, string, string, string, string, string];
+        return {
+          index: Number(index),
+          caseKey: key,
+          entryHash: entryHash.toLowerCase(),
+          prevHash: prevHash.toLowerCase(),
+          actor,
+          action,
+          writer,
+          blockNumber: log.blockNumber,
+          blockHash: log.blockHash,
+          blockTimestamp: await this.blockTime(log.blockNumber),
+          txHash: log.transactionHash,
+          logIndex: log.index,
+          gasUsed: await this.gasUsed(log.transactionHash),
+          topics: [...log.topics],
+        };
+      }),
+    );
+  }
+
+  private async gasUsed(txHash: string): Promise<string | null> {
+    const cached = this.gasByTx.get(txHash);
+    if (cached) return cached;
+    const receipt = await this.provider.getTransactionReceipt(txHash);
+    if (!receipt) return null;
+    const gas = receipt.gasUsed.toString();
+    this.gasByTx.set(txHash, gas);
+    return gas;
+  }
+
+  private async blockTime(blockNumber: number): Promise<number | null> {
+    const cached = this.timeByBlock.get(blockNumber);
+    if (cached !== undefined) return cached;
+    const block = await this.provider.getBlock(blockNumber);
+    if (!block) return null;
+    this.timeByBlock.set(blockNumber, block.timestamp);
+    return block.timestamp;
   }
 }
 
@@ -133,7 +242,7 @@ export async function connectEvmAnchor(): Promise<AnchorClient> {
   const wallet = new Wallet(key, provider);
   const signer = new NonceManager(wallet);
   const contract = new Contract(address, AUDIT_LOG_ABI, signer);
-  return new EvmAnchor(contract, {
+  return new EvmAnchor(contract, provider, {
     chainId: network.chainId.toString(),
     contractAddress: address,
     network: network.chainId === LOCAL_CHAIN_ID ? "hardhat-local" : network.name || `chain-${network.chainId}`,

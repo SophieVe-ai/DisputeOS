@@ -6,11 +6,14 @@ import type { CaseDocument, ChallengeOutput, DisputeCase, EvidenceOutput, Propos
 import { ChallengePanel, EvidencePanel, ReconciliationPanel, ResolutionSummary } from "@/components/AgentPanels";
 import { ApprovalGate } from "@/components/ApprovalGate";
 import { api, usePoll } from "@/components/api";
+import { ChainConsole } from "@/components/ChainConsole";
 import { humanise, money } from "@/components/format";
 import { LedgerPanel } from "@/components/LedgerPanel";
 import { Pipeline } from "@/components/Pipeline";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { SystemStatus } from "@/components/SystemBar";
+import { IconArrowLeft, IconFolder, IconPlay } from "@/components/ui/icons";
+import { CountUp, Reveal } from "@/components/ui/motion";
 
 interface CaseDetail {
   case: DisputeCase;
@@ -22,16 +25,41 @@ interface CaseDetail {
 
 const output = <T,>(steps: RunStep[], agent: string) => steps.find((s) => s.agent === agent && s.status === "done")?.output as T | undefined;
 
+function CaseFile({ documents }: { documents: CaseDocument[] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="card frame">
+      <button type="button" className="flex w-full items-center gap-3 px-5 py-4 text-left" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <IconFolder size={16} className="text-ink-2" />
+        <h2 className="text-[14px] font-medium">Case file</h2>
+        <span className="font-mono text-[10.5px] text-ink-3">{documents.length} documents</span>
+        <span className="ml-auto font-mono text-[10.5px] uppercase tracking-[0.1em] text-ink-3">{open ? "Collapse" : "Expand"}</span>
+      </button>
+      {open && (
+        <div className="grid gap-2 border-t border-line p-4 md:grid-cols-2">
+          {documents.map((d, i) => (
+            <details key={d.id} className="reveal rounded border border-line bg-panel-2 px-3 py-2.5" style={{ animationDelay: `${i * 40}ms` }}>
+              <summary className="cursor-pointer text-[13px] font-medium">
+                {d.title} <span className="font-mono text-[10.5px] text-ink-3">· {humanise(d.kind)} · {d.docDate ?? "undated"}</span>
+              </summary>
+              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-ink-2">{d.content}</pre>
+            </details>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function CasePage() {
   const { id } = useParams<{ id: string }>();
   const { data, error, refresh } = usePoll<CaseDetail>(`/api/cases/${id}`, 1200);
   const { data: system } = usePoll<SystemStatus>("/api/system", 5000);
   const [starting, setStarting] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
-  const [showDocs, setShowDocs] = useState(false);
 
   if (error && !data) return <p role="alert" className="text-bad">{error}</p>;
-  if (!data) return <p className="text-ink-3">Loading case…</p>;
+  if (!data) return <p className="font-mono text-[12px] text-ink-3">Loading case…</p>;
 
   const { case: c, run, steps } = data;
   const busy = run !== null && ["queued", "running"].includes(run.status);
@@ -58,54 +86,56 @@ export default function CasePage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/" className="text-sm text-ink-3 hover:text-ink">← All cases</Link>
-      <header className="card flex flex-wrap items-start gap-4 p-6">
+      <Link href="/" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3 transition-colors hover:text-ink">
+        <IconArrowLeft size={13} /> All cases
+      </Link>
+
+      <Reveal as="header" className="flex flex-wrap items-end gap-6 border-b border-line pb-8">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-ink-3">{c.reference}</span>
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="font-mono text-[11px] text-ink-3">{c.reference}</span>
             <StatusBadge status={busy ? "running" : c.status} />
           </div>
-          <h1 className="mt-1 text-2xl font-bold">{c.title}</h1>
-          <p className="mt-1 text-sm text-ink-2">{c.creditor} <span className="text-ink-3">v</span> {c.debtor}</p>
-          <p className="mt-2 max-w-3xl text-sm text-ink-2">{c.summary}</p>
+          <h1 className="mt-3 text-[34px] font-normal leading-tight tracking-[-0.03em]">{c.title}</h1>
+          <p className="mt-2 text-[14px] text-ink-2">{c.creditor} <span className="px-1 text-ink-3">v</span> {c.debtor}</p>
+          <p className="mt-3 max-w-3xl text-[13px] leading-relaxed text-ink-3">{c.summary}</p>
         </div>
         <div className="text-right">
           <div className="label">Claimed</div>
-          <div className="text-3xl font-bold tabular-nums">{money(c.claimedAmountPence)}</div>
-          <button type="button" className="btn btn-primary mt-3" disabled={!canRun || starting} onClick={startRun}>
-            {busy ? "Agents working…" : run ? "Re-run agents" : "▶ Run agents"}
+          <div className="mt-2 text-[40px] font-light leading-none tracking-[-0.03em]">
+            <CountUp value={c.claimedAmountPence} format={(n) => money(Math.round(n))} />
+          </div>
+          <button type="button" className="btn btn-primary mt-5" disabled={!canRun || starting} onClick={startRun}>
+            {busy ? (
+              <>
+                <svg width="12" height="12" viewBox="0 0 12 12" className="spin" aria-hidden><circle cx="6" cy="6" r="5" fill="none" stroke="currentColor" strokeOpacity=".25" strokeWidth="1.5" /><path d="M6 1a5 5 0 0 1 5 5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+                Agents working
+              </>
+            ) : (
+              <><IconPlay size={12} /> {run ? "Re-run agents" : "Run agents"}</>
+            )}
           </button>
           {runError && <p role="alert" className="mt-2 text-xs text-bad">{runError}</p>}
         </div>
-      </header>
+      </Reveal>
 
-      <Pipeline steps={steps} runStatus={run?.status ?? null} />
+      <Reveal delay={100}><Pipeline steps={steps} runStatus={run?.status ?? null} /></Reveal>
       {run?.status === "failed" && <p role="alert" className="card border-bad/50 p-4 text-sm text-bad">Run failed: {run.error}</p>}
 
-      <section className="card p-5">
-        <button type="button" className="flex w-full items-center justify-between" onClick={() => setShowDocs(!showDocs)} aria-expanded={showDocs}>
-          <h2 className="font-semibold">📁 Case file ({data.documents.length} documents)</h2>
-          <span className="text-sm text-ink-3">{showDocs ? "Hide" : "Show"}</span>
-        </button>
-        {showDocs && (
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {data.documents.map((d) => (
-              <details key={d.id} className="rounded-lg border border-line bg-panel-2 p-3">
-                <summary className="cursor-pointer text-sm font-medium">{d.title} <span className="text-xs text-ink-3">· {humanise(d.kind)} · {d.docDate ?? "undated"}</span></summary>
-                <pre className="mt-2 whitespace-pre-wrap font-mono text-xs text-ink-2">{d.content}</pre>
-              </details>
-            ))}
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_480px]">
+        <div className="min-w-0 space-y-6">
+          <Reveal delay={150}><CaseFile documents={data.documents} /></Reveal>
+          {data.proposals.length > 0 && <ApprovalGate proposals={data.proposals} pinRequired={system?.approvalPinRequired ?? false} onDecided={refresh} />}
+          <div className="grid gap-6 2xl:grid-cols-2">
+            {evidence && <EvidencePanel out={evidence} />}
+            {recon && <ReconciliationPanel out={recon} />}
+            {challenge && <ChallengePanel out={challenge} />}
+            {resolution && <ResolutionSummary out={resolution} />}
           </div>
-        )}
-      </section>
-
-      {data.proposals.length > 0 && <ApprovalGate proposals={data.proposals} pinRequired={system?.approvalPinRequired ?? false} onDecided={refresh} />}
-
-      <div className="grid gap-6 xl:grid-cols-2">
-        {evidence && <EvidencePanel out={evidence} />}
-        {recon && <ReconciliationPanel out={recon} />}
-        {challenge && <ChallengePanel out={challenge} />}
-        {resolution && <ResolutionSummary out={resolution} />}
+        </div>
+        <Reveal delay={200} className="xl:sticky xl:top-20">
+          <ChainConsole caseId={c.id} heightClass="h-[420px] xl:h-[calc(100vh-330px)]" />
+        </Reveal>
       </div>
 
       <LedgerPanel caseId={c.id} demoMode={system?.demoMode ?? false} />
