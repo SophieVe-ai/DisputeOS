@@ -135,6 +135,27 @@ CREATE TABLE IF NOT EXISTS run_wakeups (
 
 CREATE INDEX IF NOT EXISTS idx_correspondence_case ON correspondence(case_id);
 CREATE INDEX IF NOT EXISTS idx_wakeups_due ON run_wakeups(status, due_at);
+
+-- User accounts. Business accounts must name their business; emails are stored lower-cased.
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  account_type TEXT NOT NULL CHECK (account_type IN ('business', 'other')),
+  business_name TEXT,
+  created_at TEXT NOT NULL,
+  CHECK (account_type = 'other' OR business_name IS NOT NULL)
+);
+
+-- Signed-in sessions. Only a hash of the cookie token is stored.
+CREATE TABLE IF NOT EXISTS sessions (
+  token_hash TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_ledger_case ON ledger_entries(case_id);
 CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
 
