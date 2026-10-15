@@ -38,3 +38,31 @@ export const DecisionSchema = z.object({
 
 export const VerifySchema = z.object({ caseId: z.string().max(100).optional() });
 export const TamperSchema = z.object({ caseId: z.string().min(1).max(100) });
+
+// ---------- Accounts ----------
+
+// Free mailbox providers: an address at one of these does not identify a business.
+const FREE_EMAIL_DOMAINS = new Set([
+  "gmail.com", "googlemail.com", "outlook.com", "hotmail.com", "hotmail.co.uk", "live.com", "live.co.uk", "msn.com",
+  "yahoo.com", "yahoo.co.uk", "ymail.com", "icloud.com", "me.com", "mac.com", "aol.com", "gmx.com", "gmx.co.uk",
+  "mail.com", "proton.me", "protonmail.com", "zoho.com", "yandex.com", "btinternet.com", "sky.com", "virginmedia.com",
+]);
+
+const Email = z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address").max(200));
+const Password = z.string().min(8, "Password must be at least 8 characters").max(200);
+
+export const BusinessEmail = Email.refine((email) => !FREE_EMAIL_DOMAINS.has(email.split("@")[1] ?? ""), {
+  message: "Use your business email address, not a personal one (e.g. Gmail or Outlook)",
+});
+
+export const SignUpSchema = z.discriminatedUnion("accountType", [
+  z.object({
+    accountType: z.literal("business"),
+    businessName: z.string({ error: "Enter your business name" }).trim().min(2, "Enter your business name").max(140),
+    email: BusinessEmail,
+    password: Password,
+  }),
+  z.object({ accountType: z.literal("other"), email: Email, password: Password }),
+]);
+
+export const SignInSchema = z.object({ email: Email, password: z.string().min(1, "Enter your password").max(200) });
