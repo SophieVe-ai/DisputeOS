@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/components/api";
@@ -96,7 +95,7 @@ export default function UploadCasePage() {
 
   return (
     <div className="space-y-10">
-      <header className="grid items-center gap-8 border-b border-line pb-10 lg:grid-cols-[1fr_420px]">
+      <header className="border-b border-line pb-10">
         <div>
           <Reveal><span className="label">New case</span></Reveal>
           <Reveal delay={80}><h1 className="mt-3 text-[40px] font-normal leading-tight tracking-[-0.035em]">Upload a case file</h1></Reveal>
@@ -112,10 +111,6 @@ export default function UploadCasePage() {
             ))}
           </Reveal>
         </div>
-        <Reveal delay={200} className="relative hidden aspect-[4/3] overflow-hidden rounded-md border border-line lg:block">
-          <Image src="/images/upload-docs.jpg" alt="" fill sizes="420px" className="kenburns object-cover" />
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-bg/80 via-transparent to-transparent" />
-        </Reveal>
       </header>
 
       {error && <p role="alert" className="reveal rounded border border-bad/40 bg-bad/[.05] px-4 py-3 text-[13px] text-bad">{error}</p>}
