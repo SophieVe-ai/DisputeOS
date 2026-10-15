@@ -47,6 +47,7 @@ export default function UploadCasePage() {
         new Promise((r) => setTimeout(r, 1400)), // let the analysis animation read
       ]);
       setDocs(preview.documents);
+      setError(preview.warning);
       setDraft(draftFrom(preview.inferred));
       setStage("review");
     } catch (err) {

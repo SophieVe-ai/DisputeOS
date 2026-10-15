@@ -6,6 +6,7 @@ import { extractFacts } from "../parser";
 import { sha256Hex } from "../ledger/hash";
 import { DISPUTE_TYPES, type CaseDocument, type DisputeFacts, type EvidenceItem, type EvidenceOutput, type ExtractedFacts } from "../types";
 import { errorMessage, type Agent, type AgentContext } from "./context";
+import { extractWithClaude, mergeFacts, unreadDocuments } from "./extraction";
 
 const LlmEvidenceSchema = z.object({
   summary: z.string(),
@@ -92,7 +93,33 @@ function mergeDisputes(rules: DisputeFacts[], llm: DisputeFacts[], docIds: Set<s
   return merged;
 }
 
+/**
+ * Documents the rules parser couldn't read (e.g. a table-layout PDF invoice) are read by
+ * Claude instead; only figures printed in the document survive. Logged per document.
+ */
+async function readUnparsedDocuments(ctx: AgentContext, rules: ExtractedFacts): Promise<{ facts: ExtractedFacts; gaps: string[] }> {
+  const unread = unreadDocuments(ctx.documents, rules);
+  if (unread.length === 0) return { facts: rules, gaps: [] };
+  const extraction = await extractWithClaude(ctx.llm!, ctx.documents.map((d) => ({ title: d.title, kind: d.kind, content: d.content })));
+  const merged = mergeFacts(ctx.documents, rules, extraction);
+  for (const doc of unread) {
+    const g = merged.grounded[doc.id];
+    ctx.log("evidence.facts_extracted", {
+      docId: doc.id,
+      title: doc.title,
+      kind: doc.kind,
+      source: merged.sources[doc.id] ?? "none",
+      lines: g?.contract?.lines.length ?? g?.invoice?.lines.length ?? g?.delivery?.lines.length ?? 0,
+      totalPence: g?.invoice?.totalPence ?? null,
+      amountPence: g?.payment?.amountPence ?? null,
+      rejected: g?.rejected.length ?? 0,
+    });
+  }
+  return { facts: merged.facts, gaps: merged.gaps };
+}
+
 async function enhanceWithClaude(ctx: AgentContext, base: EvidenceOutput): Promise<EvidenceOutput> {
+  const read = await readUnparsedDocuments(ctx, base.facts);
   const docs = ctx.documents
     .map((d) => `<document id="${d.id}" kind="${d.kind}" title="${d.title}">\n${d.content}\n</document>`)
     .join("\n");
@@ -101,17 +128,18 @@ async function enhanceWithClaude(ctx: AgentContext, base: EvidenceOutput): Promi
     system: SYSTEM,
     prompt:
       `Creditor: ${ctx.caseFile.creditor}\nDebtor: ${ctx.caseFile.debtor}\n\n${docs}\n\n` +
-      `Rule-based extraction already found these disputes: ${JSON.stringify(base.facts.disputes)}.\n` +
+      `Rule-based extraction already found these disputes: ${JSON.stringify(read.facts.disputes)}.\n` +
       "Return a 2-3 sentence evidential summary, any additional evidential gaps, and the complete list of debtor disputes.",
   });
   const docIds = new Set(ctx.documents.map((d) => d.id));
-  const disputes = mergeDisputes(base.facts.disputes, result.disputes, docIds);
-  const facts = { ...base.facts, disputes };
+  const disputes = mergeDisputes(read.facts.disputes, result.disputes, docIds);
+  const facts = { ...read.facts, disputes };
   return {
     summary: result.summary,
     items: ctx.documents.map((doc, i) => ({ ...base.items[i], facts: describeDocument(doc, facts) })),
     facts,
-    gaps: Array.from(new Set([...base.gaps, ...result.gaps])),
+    // Recompute rule-based gaps against the merged facts so Claude-read documents count.
+    gaps: Array.from(new Set([...findGaps(facts, ctx.documents), ...read.gaps, ...result.gaps])),
   };
 }
 

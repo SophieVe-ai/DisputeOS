@@ -57,6 +57,14 @@ function describeAgentAction(agent: string, step: string, p: Payload): string | 
       if (agent === "challenge") return `Challenge agent started arguing the debtor's side (${plural(num(p, "disputes") ?? 0, "complaint")} on file).`;
       if (agent === "resolution") return `Resolution agent started drafting (strategy: ${human(str(p, "recommendation") ?? "review")}).`;
       return `${who} started.`;
+    case "facts_extracted": {
+      const title = str(p, "title") ?? "document";
+      if (str(p, "source") !== "claude") return `Couldn't read figures from “${title}”; it is not counted in the reconciliation.`;
+      const lines = num(p, "lines") ?? 0;
+      const total = num(p, "totalPence") ?? num(p, "amountPence");
+      const rejected = num(p, "rejected") ?? 0;
+      return `Read “${title}” with Claude: ${plural(lines, "line")}${total === null ? "" : `, ${formatPence(total)}`}. Every figure checked against the document${rejected ? `; ${plural(rejected, "figure")} not found there were discarded` : ""}.`;
+    }
     case "document_reviewed":
       return `Reviewed “${str(p, "title") ?? "document"}” (${human(str(p, "kind") ?? "document")}) and recorded its fingerprint.`;
     case "line_checked": {

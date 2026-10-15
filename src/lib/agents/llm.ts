@@ -47,3 +47,8 @@ export function getLlm(): LlmClient | null {
   }
   return cached;
 }
+
+/** Test hook: inject a fake client (or null for the deterministic engine). */
+export function setLlmForTesting(client: LlmClient | null): void {
+  cached = client;
+}

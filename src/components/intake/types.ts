@@ -8,6 +8,8 @@ export interface PreviewDocument {
   content: string;
   confidence: number;
   truncated: boolean;
+  /** "claude" when the rules couldn't classify it and Claude did. */
+  readBy: "rules" | "claude";
 }
 
 export interface InferredCase {
@@ -22,6 +24,7 @@ export interface InferredCase {
 export interface IntakePreview {
   documents: PreviewDocument[];
   inferred: InferredCase;
+  warning: string | null;
 }
 
 export const ACCEPT = ".txt,.md,.eml,.csv,.pdf";

@@ -14,7 +14,7 @@ UK research estimates small businesses were owed roughly **£26.5 billion** in l
 
 | Agent | Job | Engine |
 | --- | --- | --- |
-| **Evidence** | Finds the contract, invoices, delivery records, payments and relevant correspondence. Extracts structured facts, detects disputes the debtor raised, and flags evidential gaps. Each document's SHA-256 is logged. | Rules parser, plus Claude for reading free-text correspondence |
+| **Evidence** | Finds the contract, invoices, delivery records, payments and relevant correspondence. Extracts structured facts, detects disputes the debtor raised, and flags evidential gaps. Each document's SHA-256 is logged. | Rules parser, plus Claude for real-world documents (table invoices, prose contracts) and free-text correspondence |
 | **Reconciliation** | Checks quantities, contract prices, invoiced prices, deliveries and payments. Computes the supported principal plus statutory interest and fixed compensation under the *Late Payment of Commercial Debts (Interest) Act 1998*. | **Deterministic by design**: no LLM touches the money |
 | **Challenge** | An internal devil's advocate. It argues the debtor's case (inspection windows, short delivery, our own overcharges, missing proof of delivery, the Limitation Act 1980) and decides what is defensible. | Rules, plus Claude adversarial review |
 | **Resolution** | Chooses a strategy and drafts the documents: letter before action, settlement offer, credit note, Money Claim Online particulars, or a write-off memo. | Templates, plus Claude drafting with a guard rail that rejects any draft that changes the figures |
@@ -50,6 +50,18 @@ See **[DEMO.md](DEMO.md)** for the 3-minute judge walkthrough.
 `/cases/new` takes raw documents (`.txt`, `.md`, `.eml`, `.csv`, `.pdf`; up to 15 files, 2 MB each). The server extracts the text (PDFs via `unpdf`), classifies each document (contract, invoice, delivery note, payment, correspondence) with a confidence score, and infers the creditor, debtor, debtor email and outstanding balance. You review and correct anything, then **Create case & run agents** opens the case, starts the pipeline and takes you to the live view. Nothing is written until you confirm. There is no pre-loaded data: four sample case files live in `public/samples/` (regenerate with `npx tsx scripts/build-sample-packs.ts`).
 
 Every ledger entry carries a one-line plain-English description (`src/lib/ledger/describe.ts`), shown in the on-chain write log and the audit ledger.
+
+## Real-world documents
+
+The rules parser reads documents in DisputeOS's simple `Key: value` / `- Item | qty N | £price` format. With `ANTHROPIC_API_KEY` set, anything it can't read (a table-layout PDF invoice, a contract written in prose, a free-text delivery confirmation or bank transfer) is read by Claude instead (`src/lib/agents/extraction.ts`):
+
+- **Claude reads, never calculates.** It returns the figures exactly as printed. Every amount and quantity must literally appear in the source document ("grounding"); anything that doesn't is discarded and listed as an evidential gap. An invoice whose lines don't add up to its stated total is flagged.
+- **Rules first.** Documents the parser already reads never go to Claude, so known formats stay fully deterministic.
+- **Audited.** Each Claude-read document gets its own ledger entry ("Read “Invoice ACE-7781” with Claude: 2 lines, £3,860.00. Every figure checked against the document…").
+- **Arithmetic stays deterministic.** Reconciliation still computes everything from the grounded facts.
+- **Upload preview too.** When the rules can't classify a file or work out the parties and balance, Claude fills those in (marked **AI** on the review screen). The balance is built only from grounded figures.
+
+Without a key, or if a Claude call fails, the pipeline falls back to the rules engine and logs the fallback.
 
 ## Agent eval
 
