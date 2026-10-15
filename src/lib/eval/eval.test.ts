@@ -31,7 +31,7 @@ describe("agent eval", () => {
     expect(report.score).toBeGreaterThanOrEqual(90);
     expect(report.score).toBeLessThanOrEqual(100);
     expect(report.engine).toBe("deterministic");
-  });
+  }, 60_000);
 
   it("penalises a wrong answer", async () => {
     const wrong = { ...SCENARIOS[1], expected: { ...SCENARIOS[1].expected, defensiblePrincipalPence: 337_500, recommendation: "negotiate" as const } };
@@ -40,11 +40,11 @@ describe("agent eval", () => {
     expect(s.checks.find((c) => c.name === "Defensible principal")?.score).toBe(0);
     expect(s.checks.find((c) => c.name === "Recommendation")?.score).toBe(0);
     expect(s.optimisation).toBeLessThan(80);
-  });
+  }, 30_000);
 
   it("reports a failing scenario instead of throwing", async () => {
     const broken = { ...SCENARIOS[0], load: async () => { throw new Error("corrupt upload"); } };
     const report = await runEval({ scenarios: [broken] });
     expect(report.scenarios[0]).toMatchObject({ status: "failed", error: "corrupt upload", score: 0 });
-  });
+  }, 30_000);
 });

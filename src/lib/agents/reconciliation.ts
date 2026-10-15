@@ -168,11 +168,11 @@ export const reconciliationAgent: Agent<ReconciliationOutput> = {
   title: "Reconciliation agent",
   async run(ctx) {
     const evidence = requirePrior(ctx, "evidence");
-    ctx.log("reconciliation.started", { invoices: evidence.facts.invoices.length });
+    await ctx.log("reconciliation.started", { invoices: evidence.facts.invoices.length });
     const output = reconcile(evidence.facts, ctx.asOf, ctx.baseRatePercent);
     for (const line of output.lines) {
       await ctx.pace(0.3);
-      ctx.log("reconciliation.line_checked", {
+      await ctx.log("reconciliation.line_checked", {
         item: line.item,
         invoicedPence: line.invoicedPence,
         supportedPence: line.supportedPence,

@@ -75,8 +75,8 @@ describe("grounding", () => {
 });
 
 describe("evidence agent with real-world documents", () => {
-  beforeEach(() => {
-    freshEnvironment();
+  beforeEach(async () => {
+    await freshEnvironment();
   });
   afterEach(() => {
     setLlmForTesting(null);
@@ -84,10 +84,10 @@ describe("evidence agent with real-world documents", () => {
 
   it("reads table-layout documents with Claude and reconciles them deterministically", async () => {
     setLlmForTesting(fakeClaude(REAL_WORLD_EXTRACTION));
-    createCase(REAL_WORLD_CASE, REAL_WORLD_CASE.id);
-    const run = startRun(REAL_WORLD_CASE.id, "tester");
+    await createCase(REAL_WORLD_CASE, REAL_WORLD_CASE.id);
+    const run = await startRun(REAL_WORLD_CASE.id, "tester");
     await runToCompletion(run.id, AS_OF);
-    const steps = getSteps(run.id);
+    const steps = await getSteps(run.id);
     const evidence = steps[0].output as EvidenceOutput;
     const recon = steps[1].output as ReconciliationOutput;
 
@@ -100,7 +100,7 @@ describe("evidence agent with real-world documents", () => {
     expect(evidence.gaps).toContain("“Invoice ACE-7781”: quantity 1 for Milk frother is not in the document; line ignored.");
     expect(evidence.gaps.some((g) => g.includes("no due date"))).toBe(false);
 
-    const extracted = listEntries({ caseId: REAL_WORLD_CASE.id, limit: 200 }).filter((e) => e.action === "evidence.facts_extracted");
+    const extracted = (await listEntries({ caseId: REAL_WORLD_CASE.id, limit: 200 })).filter((e) => e.action === "evidence.facts_extracted");
     expect(extracted).toHaveLength(4);
     expect(extracted.map((e) => e.description)).toContain(
       "Read “Invoice ACE-7781” with Claude: 2 lines, £3,860.00. Every figure checked against the document; 1 figure not found there were discarded.",
@@ -111,20 +111,20 @@ describe("evidence agent with real-world documents", () => {
     const calls: string[] = [];
     setLlmForTesting(fakeClaude(null, calls));
     const fixture = FIXTURE_CASES[0];
-    createCase(fixture, fixture.id);
-    const run = startRun(fixture.id, "tester");
+    await createCase(fixture, fixture.id);
+    const run = await startRun(fixture.id, "tester");
     await runToCompletion(run.id, AS_OF);
     expect(calls).not.toContain("extraction");
-    expect((getSteps(run.id)[2].output as { defensiblePrincipalPence: number }).defensiblePrincipalPence).toBe(1_176_500);
+    expect(((await getSteps(run.id))[2].output as { defensiblePrincipalPence: number }).defensiblePrincipalPence).toBe(1_176_500);
   });
 
   it("falls back to the rules engine, and says so, if Claude extraction fails", async () => {
     setLlmForTesting({ model: "broken", structured: async () => { throw new Error("overloaded"); } });
-    createCase(REAL_WORLD_CASE, REAL_WORLD_CASE.id);
-    const run = startRun(REAL_WORLD_CASE.id, "tester");
+    await createCase(REAL_WORLD_CASE, REAL_WORLD_CASE.id);
+    const run = await startRun(REAL_WORLD_CASE.id, "tester");
     await runToCompletion(run.id, AS_OF);
-    expect(getSteps(run.id)[0].engine).toBe("deterministic");
-    const fallback = listEntries({ caseId: REAL_WORLD_CASE.id, limit: 200 }).find((e) => e.action === "evidence.claude_fallback");
+    expect((await getSteps(run.id))[0].engine).toBe("deterministic");
+    const fallback = (await listEntries({ caseId: REAL_WORLD_CASE.id, limit: 200 })).find((e) => e.action === "evidence.claude_fallback");
     expect(fallback?.description).toBe("Claude was unavailable, so the evidence agent used the rules engine instead.");
   });
 });

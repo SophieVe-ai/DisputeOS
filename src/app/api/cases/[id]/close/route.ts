@@ -7,9 +7,9 @@ import { getCase } from "@/lib/repo/cases";
 export async function POST(request: Request, ctx: RouteContext<"/api/cases/[id]/close">) {
   const { id } = await ctx.params;
   const body = await readJson(request);
-  return handle(() => {
-    if (!getCase(id)) return fail("Case not found", 404);
+  return handle(async () => {
+    if (!(await getCase(id))) return fail("Case not found", 404);
     const { closedBy } = CloseEngagementSchema.parse(body);
-    return ok(closeEngagement(id, closedBy));
+    return ok(await closeEngagement(id, closedBy));
   });
 }

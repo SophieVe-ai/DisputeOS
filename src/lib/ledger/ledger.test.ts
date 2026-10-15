@@ -13,23 +13,23 @@ describe("hash utilities", () => {
 });
 
 describe("ledger", () => {
-  beforeEach(() => {
-    freshEnvironment();
+  beforeEach(async () => {
+    await freshEnvironment();
   });
 
-  it("hash-chains entries from genesis", () => {
-    const a = appendEntry({ caseId: "c1", runId: null, actor: "agent:evidence", action: "x", payload: { n: 1 } });
-    const b = appendEntry({ caseId: "c1", runId: null, actor: "agent:evidence", action: "y", payload: { n: 2 } });
+  it("hash-chains entries from genesis", async () => {
+    const a = await appendEntry({ caseId: "c1", runId: null, actor: "agent:evidence", action: "x", payload: { n: 1 } });
+    const b = await appendEntry({ caseId: "c1", runId: null, actor: "agent:evidence", action: "y", payload: { n: 2 } });
     expect(a.prevHash).toBe(GENESIS_HASH);
     expect(b.prevHash).toBe(a.entryHash);
     expect(b.seq).toBe(2);
   });
 
   it("anchors entries in order and verifies against the chain", async () => {
-    appendEntry({ caseId: "c1", runId: null, actor: "a", action: "x", payload: 1 });
-    appendEntry({ caseId: "c2", runId: null, actor: "a", action: "y", payload: 2 });
+    await appendEntry({ caseId: "c1", runId: null, actor: "a", action: "x", payload: 1 });
+    await appendEntry({ caseId: "c2", runId: null, actor: "a", action: "y", payload: 2 });
     await flushAnchors();
-    expect(ledgerStats()).toMatchObject({ total: 2, anchored: 2, pending: 0 });
+    expect(await ledgerStats()).toMatchObject({ total: 2, anchored: 2, pending: 0 });
     const report = await verifyLedger();
     expect(report.ok).toBe(true);
     expect(report.chain.onChainCount).toBe(2);
@@ -37,20 +37,21 @@ describe("ledger", () => {
     expect((await verifyLedger("c2")).checked).toBe(1);
   });
 
-  it("rejects UPDATE and DELETE at the database level", () => {
-    appendEntry({ caseId: "c1", runId: null, actor: "a", action: "x", payload: 1 });
-    expect(() => getDb().prepare("UPDATE ledger_entries SET action = 'evil'").run()).toThrow(/append-only/);
-    expect(() => getDb().prepare("DELETE FROM ledger_entries").run()).toThrow(/append-only/);
+  it("rejects UPDATE and DELETE at the database level", async () => {
+    await appendEntry({ caseId: "c1", runId: null, actor: "a", action: "x", payload: 1 });
+    const db = await getDb();
+    await expect(db.run("UPDATE ledger_entries SET action = 'evil'")).rejects.toThrow(/append-only/);
+    await expect(db.run("DELETE FROM ledger_entries")).rejects.toThrow(/append-only/);
   });
 
   it("detects an insider rewrite even when the row's own hashes are recomputed", async () => {
-    freshEnvironment({ seed: true });
-    const run = startRun("case-harbour-kestrel", "tester");
+    await freshEnvironment({ seed: true });
+    const run = await startRun("case-harbour-kestrel", "tester");
     await runToCompletion(run.id, AS_OF);
     await flushAnchors();
     expect((await verifyLedger()).ok).toBe(true);
 
-    const tampered = tamperWithCase("case-harbour-kestrel");
+    const tampered = await tamperWithCase("case-harbour-kestrel");
     expect(tampered?.action).toBe("challenge.completed");
     const report = await verifyLedger();
     expect(report.ok).toBe(false);
@@ -60,45 +61,48 @@ describe("ledger", () => {
     const next = report.entries.find((e) => e.seq === tampered!.seq + 1)!;
     expect(next.linkIntact).toBe(false); // ...but the chain link and the on-chain anchor expose it
     // Append-only guard is restored after the simulated attack.
-    expect(() => getDb().prepare("DELETE FROM ledger_entries").run()).toThrow(/append-only/);
+    await expect((await getDb()).run("DELETE FROM ledger_entries")).rejects.toThrow(/append-only/);
   });
 
   it("still verifies the local hash chain when the blockchain is unavailable", async () => {
-    freshEnvironment({ chain: false });
-    appendEntry({ caseId: "c1", runId: null, actor: "a", action: "x", payload: 1 });
+    await freshEnvironment({ chain: false });
+    await appendEntry({ caseId: "c1", runId: null, actor: "a", action: "x", payload: 1 });
     await flushAnchors();
     const report = await verifyLedger();
     expect(report.chain.available).toBe(false);
     expect(report.entries[0].onChain).toBe("unavailable");
     expect(report.ok).toBe(true);
-    expect(listEntries()[0].anchor.status).toBe("pending");
+    expect((await listEntries())[0].anchor.status).toBe("pending");
   });
 });
 
 describe("ledger resilience", () => {
   it("detects a truncated log via on-chain anchors", async () => {
-    freshEnvironment();
-    appendEntry({ caseId: "c1", runId: null, actor: "a", action: "x", payload: 1 });
-    appendEntry({ caseId: "c1", runId: null, actor: "a", action: "y", payload: 2 });
+    await freshEnvironment();
+    await appendEntry({ caseId: "c1", runId: null, actor: "a", action: "x", payload: 1 });
+    await appendEntry({ caseId: "c1", runId: null, actor: "a", action: "y", payload: 2 });
     await flushAnchors();
-    getDb().exec("DROP TRIGGER ledger_no_delete");
-    getDb().prepare("DELETE FROM ledger_anchors WHERE seq = 2").run();
-    getDb().prepare("DELETE FROM ledger_entries WHERE seq = 2").run();
+    const db = await getDb();
+    // Disable (not drop) the guard so the shared per-file database keeps it for later tests.
+    await db.exec("ALTER TABLE ledger_entries DISABLE TRIGGER ledger_no_delete");
+    await db.run("DELETE FROM ledger_anchors WHERE seq = 2");
+    await db.run("DELETE FROM ledger_entries WHERE seq = 2");
+    await db.exec("ALTER TABLE ledger_entries ENABLE TRIGGER ledger_no_delete");
     const report = await verifyLedger();
     expect(report.ok).toBe(false);
     expect(report.missingFromDb).toBe(1);
   });
 
   it("re-anchors entries when the chain is reset (e.g. local node restarted)", async () => {
-    freshEnvironment();
-    appendEntry({ caseId: "c1", runId: null, actor: "a", action: "x", payload: 1 });
+    await freshEnvironment();
+    await appendEntry({ caseId: "c1", runId: null, actor: "a", action: "x", payload: 1 });
     await flushAnchors();
     const { MemoryAnchor } = await import("./anchor");
     const { setAnchorForTesting } = await import("./anchor-registry");
     setAnchorForTesting(new MemoryAnchor()); // same "address", empty log
-    appendEntry({ caseId: "c1", runId: null, actor: "a", action: "y", payload: 2 });
+    await appendEntry({ caseId: "c1", runId: null, actor: "a", action: "y", payload: 2 });
     await flushAnchors();
-    expect(ledgerStats()).toMatchObject({ total: 2, anchored: 2, errored: 0 });
+    expect(await ledgerStats()).toMatchObject({ total: 2, anchored: 2, errored: 0 });
     expect((await verifyLedger()).ok).toBe(true);
   });
 });

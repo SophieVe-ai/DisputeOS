@@ -33,7 +33,7 @@ export interface ChainFeed {
 
 export async function chainFeed(opts: { caseId?: string; limit?: number } = {}): Promise<ChainFeed> {
   const limit = Math.min(Math.max(opts.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
-  const rows = listEntries({ caseId: opts.caseId, limit }).reverse();
+  const rows = (await listEntries({ caseId: opts.caseId, limit })).reverse();
   const anchor = await getAnchor();
 
   let events: ChainEvent[] = [];

@@ -16,8 +16,21 @@ function numberEnv(name: string, fallback: number): number {
 }
 
 export const config = {
+  /** Postgres connection string (Neon on Vercel). When unset, an embedded PGlite database is used. */
+  get databaseUrl(): string | null {
+    return process.env.DATABASE_URL || process.env.POSTGRES_URL || null;
+  },
+  /** PGlite data directory for local runs (`memory://` for a throwaway database). */
   get databasePath(): string {
-    return process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "disputeos.db");
+    return process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "pglite");
+  },
+  /** On Vercel there is no long-lived process: work is driven per request (after()) and by cron. */
+  get serverless(): boolean {
+    return Boolean(process.env.VERCEL);
+  },
+  /** Shared secret Vercel Cron sends as a bearer token. */
+  get cronSecret(): string | null {
+    return process.env.CRON_SECRET || null;
   },
   get deploymentFile(): string {
     return path.join(process.cwd(), ".chain", "deployment.json");

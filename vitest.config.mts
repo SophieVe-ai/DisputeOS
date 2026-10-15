@@ -7,6 +7,10 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    // Each test file boots an embedded Postgres (PGlite, WebAssembly); with files running in
+    // parallel on a busy machine the first boot can take several seconds.
+    testTimeout: 30_000,
+    hookTimeout: 60_000,
     env: { DISABLE_WORKER: "1", DEMO_STEP_DELAY_MS: "0", DISPUTEOS_ENGINE: "deterministic", BOE_BASE_RATE: "4" },
     coverage: {
       provider: "v8",

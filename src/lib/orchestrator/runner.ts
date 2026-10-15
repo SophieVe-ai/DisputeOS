@@ -17,19 +17,19 @@ const RETRY_BASE_MS = 2_000;
 
 export class RunConflictError extends Error {}
 
-export function startRun(caseId: string, requestedBy: string): Run {
-  const caseFile = getCase(caseId);
+export async function startRun(caseId: string, requestedBy: string): Promise<Run> {
+  const caseFile = await getCase(caseId);
   if (!caseFile) throw new Error(`Case ${caseId} not found`);
-  const active = activeRunForCase(caseId);
+  const active = await activeRunForCase(caseId);
   if (active) throw new RunConflictError(`Case already has an active run (${active.status})`);
-  const run = insertRun(caseId);
-  setCaseStatus(caseId, "in_review");
-  appendEntry({ caseId, runId: run.id, actor: `human:${requestedBy}`, action: "run.requested", payload: { agents: AGENT_NAMES } });
+  const run = await insertRun(caseId);
+  await setCaseStatus(caseId, "in_review");
+  await appendEntry({ caseId, runId: run.id, actor: `human:${requestedBy}`, action: "run.requested", payload: { agents: AGENT_NAMES } });
   return run;
 }
 
-function priorOutputs(runId: string): AgentContext["prior"] {
-  const byAgent = Object.fromEntries(getSteps(runId).filter((s) => s.status === "done").map((s) => [s.agent, s.output]));
+async function priorOutputs(runId: string): Promise<AgentContext["prior"]> {
+  const byAgent = Object.fromEntries((await getSteps(runId)).filter((s) => s.status === "done").map((s) => [s.agent, s.output]));
   return {
     evidence: byAgent.evidence as EvidenceOutput | undefined,
     reconciliation: byAgent.reconciliation as ReconciliationOutput | undefined,
@@ -39,19 +39,21 @@ function priorOutputs(runId: string): AgentContext["prior"] {
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-export function buildContext(run: Run, agentName: string, asOf: string = todayIso()): AgentContext {
-  const caseFile = getCase(run.caseId);
+export async function buildContext(run: Run, agentName: string, asOf: string = todayIso()): Promise<AgentContext> {
+  const caseFile = await getCase(run.caseId);
   if (!caseFile) throw new Error(`Case ${run.caseId} not found`);
   const actor = `agent:${agentName}`;
+  const documents = await getDocuments(run.caseId);
+  const prior = await priorOutputs(run.id);
   return Object.freeze({
     caseFile: Object.freeze({ ...caseFile }),
-    documents: Object.freeze(getDocuments(run.caseId).map((d) => Object.freeze(d))),
+    documents: Object.freeze(documents.map((d) => Object.freeze(d))),
     asOf,
     baseRatePercent: config.boeBaseRatePercent,
-    prior: Object.freeze(priorOutputs(run.id)),
+    prior: Object.freeze(prior),
     llm: getLlm(),
-    log: (action: string, payload?: unknown) => {
-      appendEntry({ caseId: run.caseId, runId: run.id, actor, action, payload: payload ?? null });
+    log: async (action: string, payload?: unknown) => {
+      await appendEntry({ caseId: run.caseId, runId: run.id, actor, action, payload: payload ?? null });
     },
     pace: (fraction = 1) => sleep(config.stepDelayMs * fraction),
   });
@@ -59,34 +61,34 @@ export function buildContext(run: Run, agentName: string, asOf: string = todayIs
 
 /** Executes the next pending agent for the run. Returns the updated run. */
 export async function advanceRun(runId: string, asOf?: string): Promise<Run> {
-  const run = getRun(runId);
+  const run = await getRun(runId);
   if (!run) throw new Error(`Run ${runId} not found`);
   if (run.status !== "running" && run.status !== "queued") return run;
   const agentName = AGENT_NAMES[run.stepIndex];
   const agent = AGENTS[agentName];
-  updateStep(runId, run.stepIndex, { status: "running", startedAt: nowIso(), error: null });
+  await updateStep(runId, run.stepIndex, { status: "running", startedAt: nowIso(), error: null });
   try {
-    const ctx = buildContext(run, agentName, asOf);
+    const ctx = await buildContext(run, agentName, asOf);
     const { output, engine } = await agent.run(ctx);
-    updateStep(runId, run.stepIndex, { status: "done", engine, output, finishedAt: nowIso() });
-    appendEntry({ caseId: run.caseId, runId, actor: `agent:${agentName}`, action: `${agentName}.completed`, payload: { engine, output } });
+    await updateStep(runId, run.stepIndex, { status: "done", engine, output, finishedAt: nowIso() });
+    await appendEntry({ caseId: run.caseId, runId, actor: `agent:${agentName}`, action: `${agentName}.completed`, payload: { engine, output } });
     const nextIndex = run.stepIndex + 1;
     if (nextIndex < AGENT_NAMES.length) {
-      updateRun(runId, { stepIndex: nextIndex, attempts: 0, leaseUntil: null, error: null });
+      await updateRun(runId, { stepIndex: nextIndex, attempts: 0, leaseUntil: null, error: null });
     } else {
-      finishPipeline(run, output as ResolutionOutput);
+      await finishPipeline(run, output as ResolutionOutput);
     }
   } catch (err) {
-    handleFailure(run, err);
+    await handleFailure(run, err);
   }
-  return getRun(runId)!;
+  return (await getRun(runId))!;
 }
 
-function finishPipeline(run: Run, resolution: ResolutionOutput): void {
-  const proposals = insertProposals(run.id, run.caseId, resolution.proposals);
-  updateRun(run.id, { stepIndex: AGENT_NAMES.length, status: "awaiting_approval", leaseUntil: null, attempts: 0 });
-  setCaseStatus(run.caseId, "awaiting_approval");
-  appendEntry({
+async function finishPipeline(run: Run, resolution: ResolutionOutput): Promise<void> {
+  const proposals = await insertProposals(run.id, run.caseId, resolution.proposals);
+  await updateRun(run.id, { stepIndex: AGENT_NAMES.length, status: "awaiting_approval", leaseUntil: null, attempts: 0 });
+  await setCaseStatus(run.caseId, "awaiting_approval");
+  await appendEntry({
     caseId: run.caseId,
     runId: run.id,
     actor: "system:orchestrator",
@@ -95,27 +97,27 @@ function finishPipeline(run: Run, resolution: ResolutionOutput): void {
   });
 }
 
-function handleFailure(run: Run, err: unknown): void {
+async function handleFailure(run: Run, err: unknown): Promise<void> {
   const message = err instanceof Error ? err.message : String(err);
   const attempts = run.attempts + 1;
   const agentName = AGENT_NAMES[run.stepIndex];
   const exhausted = attempts >= MAX_ATTEMPTS;
-  updateStep(run.id, run.stepIndex, { status: exhausted ? "failed" : "pending", error: message });
-  appendEntry({ caseId: run.caseId, runId: run.id, actor: `agent:${agentName}`, action: `${agentName}.failed`, payload: { attempt: attempts, error: message } });
+  await updateStep(run.id, run.stepIndex, { status: exhausted ? "failed" : "pending", error: message });
+  await appendEntry({ caseId: run.caseId, runId: run.id, actor: `agent:${agentName}`, action: `${agentName}.failed`, payload: { attempt: attempts, error: message } });
   if (exhausted) {
-    updateRun(run.id, { status: "failed", attempts, error: message, leaseUntil: null });
-    setCaseStatus(run.caseId, "open");
-    appendEntry({ caseId: run.caseId, runId: run.id, actor: "system:orchestrator", action: "run.failed", payload: { error: message } });
+    await updateRun(run.id, { status: "failed", attempts, error: message, leaseUntil: null });
+    await setCaseStatus(run.caseId, "open");
+    await appendEntry({ caseId: run.caseId, runId: run.id, actor: "system:orchestrator", action: "run.failed", payload: { error: message } });
   } else {
     const retryAt = new Date(Date.now() + RETRY_BASE_MS * 2 ** attempts).toISOString();
-    updateRun(run.id, { attempts, error: message, leaseUntil: retryAt });
+    await updateRun(run.id, { attempts, error: message, leaseUntil: retryAt });
   }
 }
 
-/** Runs a pipeline to completion in-process (used by tests and the CLI). */
+/** Runs a pipeline to completion in-process (used by tests, the eval and the CLI). */
 export async function runToCompletion(runId: string, asOf?: string): Promise<Run> {
-  let run = getRun(runId)!;
-  updateRun(runId, { status: "running" });
+  let run = (await getRun(runId))!;
+  await updateRun(runId, { status: "running" });
   for (let guard = 0; guard < AGENT_NAMES.length * MAX_ATTEMPTS; guard++) {
     run = await advanceRun(runId, asOf);
     if (run.status !== "running") break;

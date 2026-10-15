@@ -5,9 +5,9 @@
 import { performance } from "node:perf_hooks";
 import { formatPence } from "../money";
 import { getLlm } from "../agents/llm";
-import { openDb, setDb } from "../db";
+import { openDb, withDb } from "../db";
 import { MemoryAnchor } from "../ledger/anchor";
-import { setAnchorForTesting } from "../ledger/anchor-registry";
+import { withAnchor } from "../ledger/anchor-registry";
 import { appendEntry, listEntries, syncAnchors, verifyLedger } from "../ledger/ledger";
 import { runToCompletion, startRun } from "../orchestrator/runner";
 import { createCase } from "../repo/cases";
@@ -94,31 +94,39 @@ export function sequenceSimilarity<T>(actual: T[], expected: T[]): number {
   return ordered ? jaccard : jaccard * 0.85;
 }
 
-function isolatedEnvironment(): void {
-  setDb(openDb(":memory:"));
-  setAnchorForTesting(new MemoryAnchor());
+/**
+ * Runs a scenario in its own throwaway database and in-memory chain. Both are scoped to this
+ * call tree (AsyncLocalStorage), so an eval can run inside the live server without ever
+ * touching live cases, the live ledger or the real chain.
+ */
+async function runScenario(scenario: Scenario, engine: EvalReport["engine"]): Promise<ScenarioResult> {
+  const db = await openDb("memory://");
+  try {
+    return await withDb(db, () => withAnchor(new MemoryAnchor(), () => runScenarioIsolated(scenario, engine)));
+  } finally {
+    await db.close();
+  }
 }
 
-async function runScenario(scenario: Scenario, engine: EvalReport["engine"]): Promise<ScenarioResult> {
-  isolatedEnvironment();
+async function runScenarioIsolated(scenario: Scenario, engine: EvalReport["engine"]): Promise<ScenarioResult> {
   const base = { id: scenario.id, name: scenario.name, tests: scenario.tests, source: scenario.source };
   const exp = scenario.expected;
   const started = performance.now();
   try {
     const input = await scenario.load();
-    const created = createCase(input, input.id);
-    appendEntry({ caseId: created.id, runId: null, actor: "system:intake", action: "case.opened", payload: { evaluation: scenario.id } });
-    const run = startRun(created.id, "evaluator");
+    const created = await createCase(input, input.id);
+    await appendEntry({ caseId: created.id, runId: null, actor: "system:intake", action: "case.opened", payload: { evaluation: scenario.id } });
+    const run = await startRun(created.id, "evaluator");
     const finished = await runToCompletion(run.id, EVAL_AS_OF);
     await syncAnchors();
     await syncAnchors();
     const durationMs = performance.now() - started;
 
-    const steps = getSteps(run.id);
+    const steps = await getSteps(run.id);
     const recon = steps.find((s) => s.agent === "reconciliation")?.output as ReconciliationOutput | undefined;
     const challenge = steps.find((s) => s.agent === "challenge")?.output as ChallengeOutput | undefined;
-    const proposals = listProposals(run.id).map((p) => p.kind);
-    const entries = listEntries({ caseId: created.id, limit: 2000 });
+    const proposals = (await listProposals(run.id)).map((p) => p.kind);
+    const entries = await listEntries({ caseId: created.id, limit: 2000 });
     const verification = await verifyLedger(created.id);
 
     const checks: Check[] = [];

@@ -9,8 +9,8 @@ import { DecisionSchema, NewCaseSchema } from "./schemas";
 import { caseDetail, caseSummaries, systemStatus } from "./views";
 
 describe("http helpers", () => {
-  beforeEach(() => {
-    freshEnvironment({ seed: true });
+  beforeEach(async () => {
+    await freshEnvironment({ seed: true });
   });
 
   it("wraps results in the API envelope", async () => {
@@ -44,17 +44,17 @@ describe("http helpers", () => {
 });
 
 describe("read models", () => {
-  beforeEach(() => {
-    freshEnvironment({ seed: true });
+  beforeEach(async () => {
+    await freshEnvironment({ seed: true });
   });
 
   it("summarises cases and system status", async () => {
-    const run = startRun("case-northbank-lumen", "tester");
+    const run = await startRun("case-northbank-lumen", "tester");
     await runToCompletion(run.id, AS_OF);
-    const lumen = caseSummaries().find((c) => c.id === "case-northbank-lumen")!;
+    const lumen = (await caseSummaries()).find((c) => c.id === "case-northbank-lumen")!;
     expect(lumen.defensiblePrincipalPence).toBe(675_000);
-    expect(caseDetail("case-northbank-lumen")?.proposals).toHaveLength(2);
-    expect(caseDetail("missing")).toBeNull();
+    expect((await caseDetail("case-northbank-lumen"))?.proposals).toHaveLength(2);
+    expect(await caseDetail("missing")).toBeNull();
     const status = await systemStatus();
     expect(status.stats.cases).toBe(3);
     expect(status.stats.awaitingApproval).toBe(2);

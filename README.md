@@ -24,7 +24,7 @@ After the agents finish, **nothing happens until a person approves**. Each appro
 ## Why the ledger can't be rewritten by an agent
 
 1. **Agents only get an `append` closure.** `AgentContext` (`src/lib/agents/context.ts`) is frozen and exposes no database handle, ledger reader or signing key. The actor name is fixed by the orchestrator.
-2. **The database is append-only.** SQLite triggers abort any `UPDATE` or `DELETE` on `ledger_entries`.
+2. **The database is append-only.** Postgres triggers abort any `UPDATE` or `DELETE` on `ledger_entries`.
 3. **The log is hash-chained.** Each entry commits to its payload hash and to the previous entry's hash.
 4. **It is anchored on-chain.** Each entry hash is written, in order, to `contracts/AuditLog.sol`. The contract enforces the chain link (`BrokenChain`), rejects duplicates, accepts only authorised writers, and has **no edit or delete function** (a test asserts this).
 5. **Verification is independent.** *Verify against chain* recomputes every hash from the stored data and compares it with the immutable on-chain anchors.
@@ -77,7 +77,7 @@ The case doesn't end when a letter goes out. Once a human approves a letter that
 - **Reads the reply.** It classifies it as paid, counter-offer, promise to pay, dispute, refusal, request for information, or acknowledgement. The rules engine does this offline; Claude does it when configured, but any figure or date Claude returns must appear verbatim in the reply or it is discarded.
 - **Deterministic money policy** (`policy.ts`). It accepts an offer at or above the Challenge agent's defensible principal and counters below it. It escalates after two rejected counters, chases the balance after a part payment, and closes the case once payment covers what's on the table (the approver is told to check the bank first). It answers disputes the Challenge agent already assessed and sends a holding reply for new points. Silence gets one final reminder, then escalation to a court claim. **It never proposes settling below the defensible principal.**
 - **Back through the gate.** Every move is a drafted letter the human approves or rejects. Approving it sends the letter and re-arms the timer. A closure or escalation ends the engagement. If every draft is rejected, the agent keeps waiting with a routine follow-up, so a case can never stall silently.
-- **Durable and leased.** Wake-ups live in SQLite (`run_wakeups`) and are leased like runs. Only one turn per case runs at a time, a reply that arrives while a decision is pending waits for the gate, and a turn that crashes is retried (3 attempts with backoff).
+- **Durable and leased.** Wake-ups live in Postgres (`run_wakeups`) and are leased like runs. Only one turn per case runs at a time, a reply that arrives while a decision is pending waits for the gate, and a turn that crashes is retried (3 attempts with backoff).
 
 For demos, `FOLLOW_UP_DAY_MS=5000` turns a "day" into 5 seconds, and in `DEMO_MODE` the case page offers **Fast-forward to deadline** (logged on the ledger as `system:demo-clock`) and sample debtor replies.
 
@@ -94,21 +94,42 @@ The result is a single percentage. The web UI runs the eval in a child process, 
 
 ## Long-running agents platform
 
-- **Durable runs.** Each run is a state machine in SQLite (`runs`, `run_steps`), and each agent step's output is persisted.
+- **Durable runs.** Each run is a state machine in Postgres (`runs`, `run_steps`), and each agent step's output is persisted.
 - **Leased worker.** A background worker (`src/lib/orchestrator/worker.ts`, started from `instrumentation.ts`) atomically leases runs. If the server crashes mid-run, the lease expires and the run resumes from the last completed step.
 - **Retries with backoff.** A failing step retries up to 3 times with exponential backoff, then the run is marked failed. Every attempt is logged.
 - **Ordered anchoring.** A serialised queue anchors ledger entries to the chain in order. It recovers after chain restarts and keeps working offline: entries stay *pending* until the chain is reachable.
 
+## Deploying to Vercel
+
+DisputeOS runs on Vercel as a production app: Neon Postgres for data, Base Sepolia for the on-chain audit trail.
+
+- **Database.** `DATABASE_URL` (provisioned by the Neon Marketplace integration) switches the data layer from the embedded PGlite to Postgres. The schema is applied automatically on first connection. `npm run db:reset` refuses to touch a hosted database.
+- **No always-on worker.** Vercel has no long-lived process, so every request that creates work (start a run, record a decision or a reply, fast-forward) calls `kick()`. That keeps draining runs and Negotiation turns after the response is sent (Next.js `after()`, `maxDuration` 300 s). The case page's polling also kicks any work that has fallen due (retry backoff, a lapsed follow-up timer), and a Vercel Cron job (`/api/cron/tick`, daily, authenticated with `CRON_SECRET`) is the backstop for days-long timers when nobody is looking.
+- **Safe across instances.** Runs and wake-ups are claimed with `FOR UPDATE SKIP LOCKED` leases. Decisions, Negotiation turns and closes lock the run row. Ledger appends hold an advisory lock, so the hash chain can never fork, and only one instance anchors to the chain at a time.
+- **Evals** run in-process, each scenario in its own throwaway in-memory Postgres and chain (AsyncLocalStorage-scoped), so they never touch live data. Results are stored in the `eval_runs` table.
+
+Environment variables on Vercel:
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | Neon connection string (set by the integration) |
+| `CRON_SECRET` | Bearer token Vercel Cron sends to `/api/cron/tick` |
+| `CHAIN_RPC_URL`, `LEDGER_PRIVATE_KEY`, `LEDGER_CONTRACT_ADDRESS` | Base Sepolia anchoring (deploy with `npm run chain:deploy:testnet`) |
+| `DEMO_MODE` | `1` enables the tamper and fast-forward demo endpoints |
+| `ANTHROPIC_API_KEY` | Optional: run the agents on Claude |
+
+Locally nothing changes: `npm run demo` uses the embedded PGlite database in `data/pglite` and a long-lived worker. Keep `DATABASE_URL` out of `.env.local` unless you mean to point local dev at production data.
+
 ## Tech
 
-Next.js 16 (App Router) · TypeScript · Tailwind v4 · SQLite (better-sqlite3) · Anthropic SDK (structured outputs + Zod) · Solidity 0.8.24 · Hardhat · ethers v6 · Vitest · GitHub Actions.
+Next.js 16 (App Router) · TypeScript · Tailwind v4 · Postgres (Neon in production, PGlite locally) · Anthropic SDK (structured outputs + Zod) · Solidity 0.8.24 · Hardhat · ethers v6 · Vitest · GitHub Actions.
 
 ```
 src/lib/agents/        Evidence, Reconciliation, Challenge, Resolution + templates + Claude client
 src/lib/negotiation/   Negotiation agent: reply classifier, deterministic policy, follow-up letters
 src/lib/orchestrator/  runner (state machine), worker (leases), approvals (human gate), engagement (replies, timers)
 src/lib/ledger/        hash chain, anchoring, verification, tamper simulation
-src/lib/repo/          SQLite repositories
+src/lib/repo/          Postgres repositories (db.ts: Neon via pg, or embedded PGlite)
 src/app/api/           REST API (envelope: { success, data, error })
 contracts/             AuditLog.sol
 contract-tests/        Hardhat tests

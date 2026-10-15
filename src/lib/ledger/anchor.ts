@@ -58,6 +58,8 @@ export interface AnchorClient {
   latestBlock(): Promise<number>;
   /** Most recent `EntryAnchored` logs (ascending), optionally filtered by case via the indexed topic. */
   events(opts: { caseId?: string | null; limit: number }): Promise<ChainEvent[]>;
+  /** Called at the start of each (lock-serialised) anchoring pass: re-sync signer state from the chain. */
+  beginSession(): void;
 }
 
 export const ENTRY_ANCHORED_TOPIC = keccakId("EntryAnchored(uint256,bytes32,bytes32,bytes32,string,string,address)");
@@ -70,6 +72,8 @@ export function caseKey(caseId: string | null): string {
 
 /** In-memory anchor with the same append-only + chain-link rules as the contract. Used in tests. */
 export class MemoryAnchor implements AnchorClient {
+  beginSession(): void {}
+
   private readonly hashes: string[] = [];
   private readonly logs: ChainEvent[] = [];
   private block = 0;
@@ -132,7 +136,17 @@ class EvmAnchor implements AnchorClient {
     private readonly contract: Contract,
     private readonly provider: JsonRpcProvider,
     private readonly details: AnchorInfo,
+    private readonly signer: NonceManager,
   ) {}
+
+  /**
+   * NonceManager counts nonces locally (the provider's ~250 ms request cache can return a stale
+   * pending nonce for back-to-back transactions). Another instance may have anchored since our
+   * last pass, so the count is re-read from the chain at the start of every pass.
+   */
+  beginSession(): void {
+    this.signer.reset();
+  }
 
   info(): AnchorInfo {
     return this.details;
@@ -247,5 +261,5 @@ export async function connectEvmAnchor(): Promise<AnchorClient> {
     contractAddress: address,
     network: network.chainId === LOCAL_CHAIN_ID ? "hardhat-local" : network.name || `chain-${network.chainId}`,
     writer: wallet.address,
-  });
+  }, signer);
 }

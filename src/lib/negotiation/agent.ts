@@ -46,7 +46,7 @@ export interface NegotiationContext {
   readonly asOf: string;
   readonly baseRatePercent: number;
   readonly llm: LlmClient | null;
-  log(action: string, payload?: unknown): void;
+  log(action: string, payload?: unknown): Promise<void>;
   pace(fraction?: number): Promise<void>;
 }
 
@@ -85,7 +85,7 @@ async function readReply(ctx: NegotiationContext): Promise<{ analysis: ReplyAnal
     try {
       return { analysis: await classifyReplyWithClaude(ctx.llm, message.body, ctx.asOf), usedClaude: true };
     } catch (err) {
-      ctx.log("negotiation.claude_fallback", { reason: errorMessage(err) });
+      await ctx.log("negotiation.claude_fallback", { reason: errorMessage(err) });
     }
   }
   return { analysis: classifyReplyRules(message.body, ctx.asOf), usedClaude: false };
@@ -145,17 +145,17 @@ export const negotiationAgent = {
   name: "negotiation",
   title: "Negotiation agent",
   async run(ctx: NegotiationContext): Promise<{ output: NegotiationOutput; engine: Engine }> {
-    ctx.log("negotiation.started", { trigger: ctx.trigger.kind, reason: ctx.trigger.reason, messageId: ctx.trigger.message?.id ?? null });
+    await ctx.log("negotiation.started", { trigger: ctx.trigger.kind, reason: ctx.trigger.reason, messageId: ctx.trigger.message?.id ?? null });
     const { analysis, usedClaude } = await readReply(ctx);
     if (analysis) {
       await ctx.pace(0.3);
-      ctx.log("negotiation.reply_classified", { intent: analysis.intent, amountPence: analysis.amountPence, promisedDate: analysis.promisedDate, disputeTypes: analysis.disputeTypes, source: analysis.source, rejected: analysis.rejected });
+      await ctx.log("negotiation.reply_classified", { intent: analysis.intent, amountPence: analysis.amountPence, promisedDate: analysis.promisedDate, disputeTypes: analysis.disputeTypes, source: analysis.source, rejected: analysis.rejected });
     }
 
     const letter = letterInput(ctx);
     const position = assessPosition(ctx, letter);
     await ctx.pace(0.3);
-    ctx.log("negotiation.position_assessed", { demandPence: position.demandPence, floorPence: position.floorPence, remindersSent: position.remindersSent, counterOffersMade: position.counterOffersMade });
+    await ctx.log("negotiation.position_assessed", { demandPence: position.demandPence, floorPence: position.floorPence, remindersSent: position.remindersSent, counterOffersMade: position.counterOffersMade });
 
     const move = decideNextMove({ trigger: ctx.trigger.kind, analysis, asOf: ctx.asOf, ...position });
     let draft = buildDraft(ctx, move, analysis, position, letter);
@@ -165,12 +165,12 @@ export const negotiationAgent = {
         draft = await polish(ctx, draft, [formatPence(draft.amountPence)]);
         polished = true;
       } catch (err) {
-        ctx.log("negotiation.claude_fallback", { reason: errorMessage(err) });
+        await ctx.log("negotiation.claude_fallback", { reason: errorMessage(err) });
       }
     }
     if (draft) {
       await ctx.pace(0.3);
-      ctx.log("negotiation.document_drafted", { kind: draft.kind, amountPence: draft.amountPence, title: draft.title, followUpDays: draft.followUpDays });
+      await ctx.log("negotiation.document_drafted", { kind: draft.kind, amountPence: draft.amountPence, title: draft.title, followUpDays: draft.followUpDays });
     }
 
     const proposals = draft ? [draft] : [];
