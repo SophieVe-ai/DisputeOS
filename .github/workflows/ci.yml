@@ -24,6 +24,10 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test:coverage
+      - name: Agent eval gate (≥ 90%)
+        run: npm run eval -- --min 90
+        env:
+          DISPUTEOS_ENGINE: deterministic
       - run: npm run test:contracts
       - run: npm run build
 

@@ -1,0 +1,8 @@
+INVOICE
+Invoice number: NP-2207
+Invoice date: 2026-06-20
+Due date: 2026-07-20
+- A5 event brochure (pack of 100) | qty 30 | £95.00
+- Roller banner 850mm | qty 12 | £150.00
+- Large-format backdrop print | qty 2 | £1,050.00
+Total due: £6,750.00

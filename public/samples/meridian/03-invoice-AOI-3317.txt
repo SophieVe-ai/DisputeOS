@@ -1,0 +1,10 @@
+INVOICE
+Invoice number: AOI-3317
+Invoice date: 2026-07-20
+Due date: 2026-08-19
+From: Atlas Office Interiors Ltd
+Bill to: Meridian Lettings Ltd
+- Task chair | qty 20 | £240.00
+- Sit-stand desk | qty 10 | £560.00
+- Acoustic screen | qty 8 | £95.00
+Total due: £11,160.00

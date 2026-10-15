@@ -23,6 +23,30 @@ interface CaseDetail {
   proposals: Proposal[];
 }
 
+/** One plain-language instruction for whatever the user should do next. */
+function NextStep({ runStatus, pending, onRun, canRun, starting }: { runStatus: string | null; pending: number; onRun: () => void; canRun: boolean; starting: boolean }) {
+  const steps: Record<string, { tone: string; title: string; body: string }> = {
+    none: { tone: "border-line-2", title: "Ready when you are", body: "Run the agents to review the documents, check the numbers and draft a response. Takes a few seconds; nothing is sent." },
+    queued: { tone: "border-info/40", title: "Agents are working", body: "Follow each step in the pipeline below and watch every action land in the on-chain log on the right." },
+    awaiting_approval: { tone: "border-warn/40", title: `${pending} drafted ${pending === 1 ? "action needs" : "actions need"} your decision`, body: "Open each one below, read the document, then approve or reject it. Only approved actions are carried out, and your decision is recorded on-chain." },
+    completed: { tone: "border-good/40", title: "All decisions recorded", body: "Every approved action has been carried out. Verify the audit trail against the blockchain at the bottom of the page." },
+    failed: { tone: "border-bad/40", title: "The run failed", body: "Something went wrong after several retries. Check the error, then run the agents again." },
+  };
+  const key = runStatus === "running" ? "queued" : (runStatus ?? "none");
+  const s = steps[key] ?? steps.none;
+  return (
+    <section aria-live="polite" className={`card reveal flex flex-wrap items-center gap-4 border-l-2 px-5 py-4 ${s.tone}`}>
+      <div className="min-w-0 flex-1">
+        <h2 className="text-[14px] font-medium">{s.title}</h2>
+        <p className="mt-1 text-[13px] leading-relaxed text-ink-2">{s.body}</p>
+      </div>
+      {(key === "none" || key === "failed") && (
+        <button type="button" className="btn btn-primary" disabled={!canRun || starting} onClick={onRun}><IconPlay size={12} /> Run agents</button>
+      )}
+    </section>
+  );
+}
+
 const output = <T,>(steps: RunStep[], agent: string) => steps.find((s) => s.agent === agent && s.status === "done")?.output as T | undefined;
 
 function CaseFile({ documents }: { documents: CaseDocument[] }) {
@@ -119,13 +143,15 @@ export default function CasePage() {
         </div>
       </Reveal>
 
+      <NextStep runStatus={run?.status ?? null} pending={data.proposals.filter((p) => p.status === "pending").length} onRun={startRun} canRun={canRun} starting={starting} />
       <Reveal delay={100}><Pipeline steps={steps} runStatus={run?.status ?? null} /></Reveal>
       {run?.status === "failed" && <p role="alert" className="card border-bad/50 p-4 text-sm text-bad">Run failed: {run.error}</p>}
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_480px]">
         <div className="min-w-0 space-y-6">
-          <Reveal delay={150}><CaseFile documents={data.documents} /></Reveal>
           {data.proposals.length > 0 && <ApprovalGate proposals={data.proposals} pinRequired={system?.approvalPinRequired ?? false} onDecided={refresh} />}
+          <Reveal delay={150}><CaseFile documents={data.documents} /></Reveal>
+          {(evidence || recon || challenge || resolution) && <h2 className="label pt-2">What the agents found</h2>}
           <div className="grid gap-6 2xl:grid-cols-2">
             {evidence && <EvidencePanel out={evidence} />}
             {recon && <ReconciliationPanel out={recon} />}

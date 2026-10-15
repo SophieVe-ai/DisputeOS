@@ -1,0 +1,8 @@
+INVOICE
+Invoice number: HJ-1042
+Invoice date: 2026-06-05
+Due date: 2026-07-05
+Bill to: Kestrel Developments Ltd
+- Shaker oak kitchen unit | qty 40 | £385.00
+- Quartz worktop section | qty 12 | £210.00
+Total due: £17,920.00

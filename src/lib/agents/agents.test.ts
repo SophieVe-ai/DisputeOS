@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { z } from "zod";
-import { DEMO_CASES } from "../seed-data";
+import { FIXTURE_CASES as DEMO_CASES } from "../fixtures/cases";
 import type { CaseDocument, ChallengeOutput, DisputeCase, EvidenceOutput, ReconciliationOutput } from "../types";
 import { challengeAgent } from "./challenge";
 import type { AgentContext } from "./context";

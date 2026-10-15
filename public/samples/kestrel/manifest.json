@@ -1,0 +1,13 @@
+{
+  "name": "Harbour Joinery v Kestrel Developments",
+  "description": "Kitchen units. A damage claim raised in time and a quality complaint raised far too late.",
+  "files": [
+    "01-master-supply-agreement-hj-kd-2026-01.txt",
+    "02-delivery-note-dn-5531.txt",
+    "03-invoice-hj-1042.txt",
+    "04-email-from-kestrel-damaged-units.eml",
+    "05-remittance-advice-part-payment.txt",
+    "06-payment-reminder-from-harbour.eml",
+    "07-email-from-kestrel-refusing-payment.eml"
+  ]
+}

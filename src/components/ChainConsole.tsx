@@ -1,7 +1,7 @@
 "use client";
 // Live terminal of every ledger write and the EntryAnchored log the contract emitted for it.
 // Rows mount as entries appear, so CSS mount animations play exactly once per new write.
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChainEvent } from "@/lib/ledger/anchor";
 import type { ChainFeed, FeedEntry } from "@/lib/ledger/chain-feed";
 import { usePoll } from "./api";
@@ -65,16 +65,33 @@ function MinedLines({ entry, event }: { entry: FeedEntry; event: ChainEvent }) {
   );
 }
 
-function EntryRow({ entry }: { entry: FeedEntry }) {
+function AnchorState({ entry }: { entry: FeedEntry }) {
+  if (entry.hashMatches === false) return <span className="text-bad">✕ altered</span>;
+  if (entry.event) return <span key="mined" className="mined-flash rounded px-1 text-good">✓ block #{entry.event.blockNumber}</span>;
+  if (entry.anchorStatus === "error") return <span className="text-bad">retrying</span>;
+  if (entry.anchorStatus === "anchored") return <span className="text-good">✓ on-chain</span>;
+  return <span className="text-warn"><Spinner /> writing</span>;
+}
+
+function EntryRow({ entry, technical }: { entry: FeedEntry; technical: boolean }) {
   const pending = !entry.event && entry.anchorStatus === "pending";
   return (
     <div className={`line-in rounded-sm px-2 py-1.5 ${entry.hashMatches === false ? "bg-bad/[.06]" : ""}`}>
-      <div className="flex gap-3 whitespace-nowrap">
-        <span className="w-[6.5rem] shrink-0 text-ink-3">{clock(entry.createdAt)}</span>
-        <span className="text-ink-3">#{String(entry.seq).padStart(3, "0")}</span>
-        <span className={actorClass(entry.actor)}>{entry.actor}</span>
-        <span className="truncate text-ink">{entry.action}</span>
+      <div className="flex items-baseline gap-3 whitespace-nowrap">
+        <span className="shrink-0 text-ink-3">{technical ? clock(entry.createdAt) : clock(entry.createdAt).slice(0, 8)}</span>
+        <span className={`truncate ${actorClass(entry.actor)}`}>{entry.actor.replace(/^(agent|human|system):/, "")}</span>
+        <span className="ml-auto shrink-0 text-[10.5px]"><AnchorState entry={entry} /></span>
       </div>
+      <p className="mt-0.5 whitespace-normal font-sans text-[12.5px] leading-snug text-ink">{entry.description}</p>
+      {technical && <TechnicalLines entry={entry} pending={pending} />}
+    </div>
+  );
+}
+
+function TechnicalLines({ entry, pending }: { entry: FeedEntry; pending: boolean }) {
+  return (
+    <div className="mt-1">
+      <Sub><span className="text-ink-3">#{String(entry.seq).padStart(3, "0")}</span> <span className="text-ink-2">{entry.action}</span></Sub>
       <Sub>
         <span className="text-ink-3">sha256</span> <Scramble text={shortHash(entry.entryHash)} className="text-ink-2" />{" "}
         <span className="text-ink-3">prev</span> <span className="text-ink-3">{shortHash(entry.prevHash)}</span>
@@ -94,7 +111,7 @@ function EntryRow({ entry }: { entry: FeedEntry }) {
 
 function BlockStrip({ events, latestBlock }: { events: ChainEvent[]; latestBlock: number }) {
   const blocks = [...new Map(events.map((e) => [e.blockNumber, e])).values()].slice(-MAX_BLOCKS);
-  if (blocks.length === 0) return <div className="flex h-[54px] items-center font-mono text-[11px] text-ink-3">No blocks yet. Run the agents to write to the chain.</div>;
+  if (blocks.length === 0) return <div className="flex h-[54px] items-center font-mono text-[11px] text-ink-3">No blocks yet.</div>;
   return (
     <ol className="flex h-[54px] items-center gap-0 overflow-hidden" aria-label="Recently mined blocks">
       {blocks.map((b, i) => {
@@ -123,6 +140,7 @@ export function ChainConsole({ caseId, className = "", heightClass = "h-[460px]"
   const { data, error } = usePoll<ChainFeed>(url, POLL_MS);
   const scroller = useRef<HTMLDivElement>(null);
   const stickToBottom = useRef(true);
+  const [technical, setTechnical] = useState(false);
 
   const entries = data?.entries ?? [];
   const events = entries.flatMap((e) => (e.event ? [e.event] : []));
@@ -151,9 +169,20 @@ export function ChainConsole({ caseId, className = "", heightClass = "h-[460px]"
         <span className="ml-auto font-mono text-[10.5px] text-ink-3">
           {chain?.connected ? <>block <span className="text-ink"><CountUp value={chain.latestBlock} format={(n) => `#${Math.round(n)}`} /></span></> : null}
         </span>
+        <button
+          type="button"
+          aria-pressed={technical}
+          onClick={() => setTechnical(!technical)}
+          className={`rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] transition-colors ${technical ? "border-line-2 bg-white/[.06] text-ink" : "border-line text-ink-3 hover:text-ink-2"}`}
+        >
+          Technical
+        </button>
       </header>
+      <p className="border-b border-line px-4 py-2 text-[12px] leading-snug text-ink-3">
+        Every action is written to the AuditLog smart contract as it happens. Once a write is mined it can never be edited or deleted.
+      </p>
 
-      <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 border-b border-line px-4 py-2.5 font-mono text-[10.5px]">
+      <div className={`grid-cols-[auto_1fr] gap-x-4 gap-y-1 border-b border-line px-4 py-2.5 font-mono text-[10.5px] ${technical ? "grid" : "hidden"}`}>
         <span className="text-ink-3">network</span>
         <span className="truncate text-ink-2">{chain?.connected ? `${chain.network} · chain ${chain.chainId}` : (chain?.error ?? "—")}</span>
         <span className="text-ink-3">contract</span>
@@ -176,8 +205,8 @@ export function ChainConsole({ caseId, className = "", heightClass = "h-[460px]"
         aria-label="Blockchain writes"
       >
         {error && !data && <p role="alert" className="px-2 text-bad">Couldn&apos;t load chain feed: {error}</p>}
-        {data && entries.length === 0 && <p className="px-2 py-1 text-ink-3">$ awaiting first write…</p>}
-        {entries.map((e) => <EntryRow key={e.seq} entry={e} />)}
+        {data && entries.length === 0 && <p className="px-2 py-1 font-sans text-[12.5px] text-ink-3">Nothing written yet. Upload a case file and run the agents: each step will appear here as it lands on the chain.</p>}
+        {entries.map((e) => <EntryRow key={e.seq} entry={e} technical={technical} />)}
         <div className="px-2 pt-1 text-ink-3">
           $ <span className="caret inline-block h-[13px] w-[7px] translate-y-[2px] bg-ink-2" />
         </div>

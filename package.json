@@ -16,7 +16,8 @@
     "chain:deploy:testnet": "hardhat run scripts/deploy-auditlog.cjs --network testnet",
     "db:reset": "tsx scripts/reset-db.ts",
     "demo": "npm run db:reset && concurrently -k -n chain,app -c magenta,cyan \"npm:chain\" \"wait-on -t 60000 tcp:127.0.0.1:8545 && npm run chain:deploy && cross-env DEMO_MODE=1 next dev --hostname 127.0.0.1\"",
-    "verify": "npm run lint && npm run typecheck && npm run test:coverage && npm run test:contracts && npm run build"
+    "verify": "npm run lint && npm run typecheck && npm run test:coverage && npm run test:contracts && npm run build",
+    "eval": "tsx scripts/eval.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.134.0",
@@ -28,6 +29,7 @@
     "react-dom": "19.3.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "unpdf": "^1.8.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
