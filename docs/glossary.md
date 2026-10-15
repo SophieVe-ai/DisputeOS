@@ -105,3 +105,9 @@ The vocabulary used across the code, the docs and the `Inputs/` case dataset. Wh
 | **Commentary** | The `commentary.md` for a reference case: Inputs, Outcome, Commentary sections. |
 | **Neutral citation** | The court's official case reference, e.g. `[2025] EWHC 1764 (TCC)`. |
 | **Creditor at fault** | Outcome where the court found the invoicing party overcharged or misrepresented; the reference equivalent of a credit-note case. |
+| **Document pack** | A folder of case documents plus a `manifest.json` (`name`, `description`, `files`) in the upload format used by `public/samples/`. |
+| **Reconstructed document** | A document in a reference case's `documents/` pack, rebuilt from facts stated in the judgment. Not an original; marked by a reconstruction footer. |
+| **Reconstruction footer** | The closing block of every reconstructed document: a statement that it is not an original, the judgment citation and paragraphs, and anything not stated, approximated or simplified. |
+| **Statement of account** | A single document listing several invoices and payments with a running balance. Used in packs where the judgment does not describe individual invoices. The app has no matching document kind. |
+| **Pleaded position letter** | A reconstructed letter that sets out a party's defences from its pleaded case, used where the judgment describes no complaint letter. Its footer says no such letter exists. |
+| **Intake classifier** | `classifyDocument` / `inferCase` in `src/lib/intake/classify.ts`: decides each uploaded file's document kind and infers creditor, debtor and claimed balance. |
