@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, typecheck, unit tests, contracts, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:coverage
+      - run: npm run test:contracts
+      - run: npm run build
+
+  e2e:
+    name: End-to-end (local chain + app)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: verify
+    env:
+      DEMO_STEP_DELAY_MS: "0"
+      DEMO_MODE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Start chain, deploy AuditLog, start app
+        run: |
+          npm run chain > chain.log 2>&1 &
+          npx wait-on -t 60000 tcp:127.0.0.1:8545
+          npm run chain:deploy
+          npm run db:reset
+          npm run start -- -p 3000 > app.log 2>&1 &
+          npx wait-on -t 60000 http://127.0.0.1:3000/api/system
+      - run: node scripts/smoke-e2e.mjs
+      - if: failure()
+        run: tail -n 100 app.log chain.log
