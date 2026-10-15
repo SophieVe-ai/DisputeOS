@@ -51,7 +51,10 @@ function DocRow({ doc, index, onChange, onRemove }: { doc: PreviewDocument; inde
           </button>
         </div>
         <input aria-label={`Date of ${doc.filename}`} type="date" className="input h-9 py-1.5" value={doc.docDate ?? ""} onChange={(e) => onChange({ docDate: e.target.value || null })} />
-        <Confidence value={doc.confidence} />
+        <span className="flex items-center gap-2">
+          <Confidence value={doc.confidence} />
+          {doc.readBy === "claude" && <span className="rounded border border-info/40 px-1 font-mono text-[9.5px] uppercase tracking-[0.08em] text-info" title="Classified by Claude">AI</span>}
+        </span>
         <button type="button" className="btn btn-bad h-8 px-2.5" onClick={onRemove} aria-label={`Remove ${doc.filename}`}><IconX size={13} /></button>
       </div>
       {open && <pre className="max-h-64 overflow-auto whitespace-pre-wrap border-t border-line px-4 py-3 font-mono text-[11px] leading-relaxed text-ink-2">{doc.content}</pre>}
