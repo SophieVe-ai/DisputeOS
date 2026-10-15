@@ -100,6 +100,41 @@ CREATE TABLE IF NOT EXISTS ledger_anchors (
   error TEXT
 );
 
+-- Long-running negotiation: every letter sent and every reply received.
+CREATE TABLE IF NOT EXISTS correspondence (
+  id TEXT PRIMARY KEY,
+  case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  run_id TEXT NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+  direction TEXT NOT NULL,
+  sender TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  body TEXT NOT NULL,
+  proposal_id TEXT,
+  sha256 TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+-- Durable wake-ups for the Negotiation agent: a reply arrived, or a deadline is due.
+CREATE TABLE IF NOT EXISTS run_wakeups (
+  id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+  case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL,
+  message_id TEXT,
+  reason TEXT NOT NULL,
+  due_at TEXT NOT NULL,
+  status TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  lease_until TEXT,
+  engine TEXT,
+  output_json TEXT,
+  error TEXT,
+  created_at TEXT NOT NULL,
+  finished_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_correspondence_case ON correspondence(case_id);
+CREATE INDEX IF NOT EXISTS idx_wakeups_due ON run_wakeups(status, due_at);
 CREATE INDEX IF NOT EXISTS idx_ledger_case ON ledger_entries(case_id);
 CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
 
@@ -110,18 +145,44 @@ CREATE TRIGGER IF NOT EXISTS ledger_no_delete BEFORE DELETE ON ledger_entries
 BEGIN SELECT RAISE(ABORT, 'ledger_entries is append-only'); END;
 `;
 
-const globalForDb = globalThis as unknown as { __disputeosDb?: DB };
+/** Bump when SCHEMA or ADDED_COLUMNS change, so a hot-reloaded dev server upgrades its cached handle. */
+const SCHEMA_VERSION = 2;
+
+const globalForDb = globalThis as unknown as { __disputeosDb?: DB; __disputeosSchema?: number };
+
+/** Columns added after the first release; added in place so existing databases keep working. */
+const ADDED_COLUMNS: { table: string; column: string; ddl: string }[] = [
+  { table: "proposals", column: "turn_id", ddl: "turn_id TEXT" },
+  { table: "proposals", column: "follow_up_days", ddl: "follow_up_days INTEGER" },
+];
+
+function migrate(db: DB): void {
+  for (const { table, column, ddl } of ADDED_COLUMNS) {
+    const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+    if (!columns.some((c) => c.name === column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  }
+}
+
+function applySchema(db: DB): void {
+  db.exec(SCHEMA);
+  migrate(db);
+}
 
 export function openDb(file: string): DB {
   if (file !== ":memory:") fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new Database(file);
-  db.exec(SCHEMA);
+  applySchema(db);
   return db;
 }
 
 export function getDb(): DB {
   if (!globalForDb.__disputeosDb) {
     globalForDb.__disputeosDb = openDb(config.databasePath);
+    globalForDb.__disputeosSchema = SCHEMA_VERSION;
+  }
+  if (globalForDb.__disputeosSchema !== SCHEMA_VERSION) {
+    applySchema(globalForDb.__disputeosDb); // idempotent: CREATE IF NOT EXISTS + guarded ALTERs
+    globalForDb.__disputeosSchema = SCHEMA_VERSION;
   }
   return globalForDb.__disputeosDb;
 }
@@ -129,6 +190,7 @@ export function getDb(): DB {
 /** Test hook: swap in an isolated (usually in-memory) database. */
 export function setDb(db: DB): void {
   globalForDb.__disputeosDb = db;
+  globalForDb.__disputeosSchema = SCHEMA_VERSION;
 }
 
 export function nowIso(): string {

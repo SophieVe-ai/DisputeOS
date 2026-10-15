@@ -2,7 +2,7 @@
 
 **Autonomous multi-agent dispute resolution for UK SMEs, with a tamper-evident on-chain audit trail and a human approval gate.**
 
-UK research estimates small businesses were owed roughly **£26.5 billion** in late payments in the 2025 fiscal year. Chasing a disputed invoice means digging out the contract, invoices, delivery notes and emails, re-checking every quantity and price, working out who is actually right, and then drafting a letter that stands up. DisputeOS does that work with four long-running AI agents. A named human approves every outbound action, and every agent action is written to an append-only log anchored on a blockchain, so the agents cannot rewrite their own history.
+UK research estimates small businesses were owed roughly **£26.5 billion** in late payments in the 2025 fiscal year. Chasing a disputed invoice means digging out the contract, invoices, delivery notes and emails, re-checking every quantity and price, working out who is actually right, and then drafting a letter that stands up. DisputeOS does that work with four AI agents, then a fifth, long-running Negotiation agent that wakes whenever the debtor replies. A named human approves every outbound action, and every agent action is written to an append-only log anchored on a blockchain, so the agents cannot rewrite their own history.
 
 ```
  Case file ─▶ 🔎 Evidence ─▶ 🧮 Reconciliation ─▶ ⚔️ Challenge ─▶ ✍️ Resolution ─▶ 🛡️ Human approval ─▶ Execute
@@ -63,6 +63,24 @@ The rules parser reads documents in DisputeOS's simple `Key: value` / `- Item | 
 
 Without a key, or if a Claude call fails, the pipeline falls back to the rules engine and logs the fallback.
 
+## Long-running negotiation (the fifth agent)
+
+The case doesn't end when a letter goes out. Once a human approves a letter that expects a reply (letter before action, settlement offer, or any follow-up), the run goes to sleep in `awaiting_response`, and the **Negotiation agent** (`src/lib/negotiation/`) takes over:
+
+```
+ approve letter ─▶ 💤 awaiting_response ──(debtor replies)──────▶ 🤝 Negotiation turn ─▶ 🛡️ approval ─▶ send ─▶ 💤 …
+                         └──(follow-up deadline passes)──────▶ 🤝 Negotiation turn ─┘
+```
+
+- **Woken by the other side.** A reply is posted to `POST /api/cases/:id/replies`, either by your inbound-email integration or pasted on the case page. It is stored, its SHA-256 is ledgered under the debtor's name (`counterparty:…`), and the agent wakes on the next worker tick.
+- **Woken by silence.** Every sent letter arms a durable follow-up timer (14 days for a letter before action, 7 for a reminder, the promised date plus 2 days for a payment promise). If nobody replies, the timer wakes the agent.
+- **Reads the reply.** It classifies it as paid, counter-offer, promise to pay, dispute, refusal, request for information, or acknowledgement. The rules engine does this offline; Claude does it when configured, but any figure or date Claude returns must appear verbatim in the reply or it is discarded.
+- **Deterministic money policy** (`policy.ts`). It accepts an offer at or above the Challenge agent's defensible principal and counters below it. It escalates after two rejected counters, chases the balance after a part payment, and closes the case once payment covers what's on the table (the approver is told to check the bank first). It answers disputes the Challenge agent already assessed and sends a holding reply for new points. Silence gets one final reminder, then escalation to a court claim. **It never proposes settling below the defensible principal.**
+- **Back through the gate.** Every move is a drafted letter the human approves or rejects. Approving it sends the letter and re-arms the timer. A closure or escalation ends the engagement. If every draft is rejected, the agent keeps waiting with a routine follow-up, so a case can never stall silently.
+- **Durable and leased.** Wake-ups live in SQLite (`run_wakeups`) and are leased like runs. Only one turn per case runs at a time, a reply that arrives while a decision is pending waits for the gate, and a turn that crashes is retried (3 attempts with backoff).
+
+For demos, `FOLLOW_UP_DAY_MS=5000` turns a "day" into 5 seconds, and in `DEMO_MODE` the case page offers **Fast-forward to deadline** (logged on the ledger as `system:demo-clock`) and sample debtor replies.
+
 ## Agent eval
 
 `npm run eval` (or the **Evals** page) runs five gold-labelled disputes end-to-end, one of them built from the raw sample upload, each in its own in-memory database and chain. The expected answers are derived by hand from the contracts, delivery records and statute (Limitation Act 1980, Late Payment Act 1998), not from the agents' output.
@@ -87,7 +105,8 @@ Next.js 16 (App Router) · TypeScript · Tailwind v4 · SQLite (better-sqlite3) 
 
 ```
 src/lib/agents/        Evidence, Reconciliation, Challenge, Resolution + templates + Claude client
-src/lib/orchestrator/  runner (state machine), worker (leases), approvals (human gate)
+src/lib/negotiation/   Negotiation agent: reply classifier, deterministic policy, follow-up letters
+src/lib/orchestrator/  runner (state machine), worker (leases), approvals (human gate), engagement (replies, timers)
 src/lib/ledger/        hash chain, anchoring, verification, tamper simulation
 src/lib/repo/          SQLite repositories
 src/app/api/           REST API (envelope: { success, data, error })
@@ -126,15 +145,18 @@ The public Hardhat development key is refused on any chain other than the local 
 | `GET` | `/api/cases/:id` | Case, documents, run, step outputs, proposals |
 | `POST` | `/api/cases/:id/runs` | Start the agent pipeline (409 if one is active) |
 | `POST` | `/api/proposals/:id/decision` | Approve or reject a drafted action (`APPROVAL_PIN` optional) |
+| `POST` | `/api/cases/:id/replies` | Record a debtor reply (`{ from, subject?, body }`) and wake the Negotiation agent (409 if nothing has been sent) |
+| `POST` | `/api/cases/:id/close` | A named human stops the follow-up and closes the case |
 | `GET` | `/api/ledger?caseId=` | Ledger entries with anchor status |
 | `POST` | `/api/ledger/verify` | Verify hash chain and on-chain anchors |
 | `GET` | `/api/system` | Engine, chain, worker and ledger status |
 | `POST` | `/api/demo/tamper` | Demo only. Enabled solely when `DEMO_MODE=1` (set by `npm run demo`) |
+| `POST` | `/api/demo/fast-forward` | Demo only. Fires the case's next follow-up deadline now (ledgered) |
 
 ## MVP limitations and roadmap
 
 - **Local-only, single-tenant, no login.** The API is unauthenticated, with no rate limiting or CSRF checks. `npm run demo` binds to `127.0.0.1` only. The approver is identified by name, with an optional PIN (`APPROVAL_PIN`). Production needs SSO, role-based approval limits, rate limiting and origin checks.
-- **No real outbound sending.** Approved actions are *executed* by recording a queued dispatch. Next steps: email/post integration and HMCTS Money Claim Online submission.
+- **No real outbound sending or inbound mailbox.** Approved actions are *executed* by recording a queued dispatch, and replies arrive through `POST /api/cases/:id/replies`. Next steps: email/post integration, an inbound-email webhook with a signing secret, and HMCTS Money Claim Online submission.
 - **Structured document intake.** The offline parser expects simple `key: value` and `- item | qty N | £price` lines. With Claude enabled, free-text correspondence is read too. PDF and OCR intake are on the roadmap.
 - **Documents are untrusted input to the LLM.** Claude never sets money figures: reconciliation is deterministic, Claude challenge items with a non-zero impact are capped, and drafted letters must contain the exact computed total or they are rejected.
 - **Bank of England base rate is configurable** (`BOE_BASE_RATE`, default 4.0). Verify the current rate before relying on interest figures.

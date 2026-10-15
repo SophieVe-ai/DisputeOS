@@ -18,6 +18,8 @@ interface ProposalRow {
   decision_note: string | null;
   executed_at: string | null;
   execution_result: string | null;
+  turn_id: string | null;
+  follow_up_days: number | null;
 }
 
 const toProposal = (r: ProposalRow): Proposal => ({
@@ -36,17 +38,21 @@ const toProposal = (r: ProposalRow): Proposal => ({
   decisionNote: r.decision_note,
   executedAt: r.executed_at,
   executionResult: r.execution_result,
+  turnId: r.turn_id,
+  followUpDays: r.follow_up_days,
 });
 
-export function insertProposals(runId: string, caseId: string, drafts: ProposalDraft[]): Proposal[] {
+export function insertProposals(runId: string, caseId: string, drafts: ProposalDraft[], turnId: string | null = null): Proposal[] {
   const db = getDb();
   const stmt = db.prepare(
-    `INSERT INTO proposals (id, run_id, case_id, kind, title, rationale, amount_pence, document_title, document_body, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+    `INSERT INTO proposals (id, run_id, case_id, kind, title, rationale, amount_pence, document_title, document_body, status, turn_id, follow_up_days)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
   );
   const ids = drafts.map(() => randomUUID());
   db.transaction(() => {
-    drafts.forEach((d, i) => stmt.run(ids[i], runId, caseId, d.kind, d.title, d.rationale, d.amountPence, d.documentTitle, d.documentBody));
+    drafts.forEach((d, i) =>
+      stmt.run(ids[i], runId, caseId, d.kind, d.title, d.rationale, d.amountPence, d.documentTitle, d.documentBody, turnId, d.followUpDays ?? null),
+    );
   })();
   return ids.map((id) => getProposal(id)!);
 }

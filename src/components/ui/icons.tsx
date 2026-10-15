@@ -76,3 +76,12 @@ export const IconSkull = (p: IconProps) => (
 export const IconScan = (p: IconProps) => (
   <Svg {...p}><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16" /><path d="M4 12h16" /></Svg>
 );
+export const IconNegotiation = (p: IconProps) => (
+  <Svg {...p}><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h8A1.5 1.5 0 0 1 15 5.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V12h-.5A1.5 1.5 0 0 1 4 10.5v-5z" /><path d="M18 9h.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-3.5A1.5 1.5 0 0 1 10 15.5V15" /></Svg>
+);
+export const IconMail = (p: IconProps) => (
+  <Svg {...p}><rect x="3.5" y="5.5" width="17" height="13" rx="1.5" /><path d="M4 7l8 6 8-6" /></Svg>
+);
+export const IconClock = (p: IconProps) => (
+  <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></Svg>
+);
