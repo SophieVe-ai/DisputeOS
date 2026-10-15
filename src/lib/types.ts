@@ -14,7 +14,9 @@ export type CaseStatus =
   | "open"
   | "in_review"
   | "awaiting_approval"
+  | "awaiting_response"
   | "resolved"
+  | "escalated"
   | "closed";
 
 export interface CaseDocument {
@@ -192,6 +194,12 @@ export const PROPOSAL_KINDS = [
   "issue_credit_note",
   "prepare_court_claim",
   "write_off",
+  // Follow-up actions drafted by the Negotiation agent after the debtor replies or a deadline lapses.
+  "send_reply",
+  "send_reminder",
+  "accept_offer",
+  "escalate_court_claim",
+  "close_case",
 ] as const;
 export type ProposalKind = (typeof PROPOSAL_KINDS)[number];
 
@@ -202,6 +210,8 @@ export interface ProposalDraft {
   amountPence: number;
   documentTitle: string;
   documentBody: string;
+  /** Days to wait for a reply once this is sent; null when no reply is expected. */
+  followUpDays?: number | null;
 }
 
 export interface ResolutionOutput {
@@ -216,6 +226,9 @@ export type ProposalStatus = "pending" | "approved" | "rejected" | "executed";
 
 export interface Proposal extends ProposalDraft {
   id: string;
+  /** The Negotiation agent turn that drafted this proposal; null for the initial pipeline. */
+  turnId: string | null;
+  followUpDays: number | null;
   runId: string;
   caseId: string;
   status: ProposalStatus;
@@ -240,6 +253,7 @@ export type RunStatus =
   | "queued"
   | "running"
   | "awaiting_approval"
+  | "awaiting_response"
   | "completed"
   | "failed";
 
@@ -270,4 +284,96 @@ export interface RunStep {
   startedAt: string | null;
   finishedAt: string | null;
   error: string | null;
+}
+
+// ---------- Negotiation (long-running follow-up) ----------
+
+export type MessageDirection = "outbound" | "inbound";
+
+export interface CorrespondenceMessage {
+  id: string;
+  caseId: string;
+  runId: string;
+  direction: MessageDirection;
+  sender: string;
+  subject: string;
+  body: string;
+  proposalId: string | null;
+  sha256: string;
+  createdAt: string;
+}
+
+export const REPLY_INTENTS = [
+  "paid",
+  "counter_offer",
+  "promise_to_pay",
+  "dispute",
+  "refusal",
+  "request_info",
+  "acknowledgement",
+] as const;
+export type ReplyIntent = (typeof REPLY_INTENTS)[number];
+
+export interface ReplyAnalysis {
+  intent: ReplyIntent;
+  /** The figure the intent is about (offered, paid), grounded in the reply text. */
+  amountPence: number | null;
+  /** A promised payment date (ISO), grounded in the reply text. */
+  promisedDate: string | null;
+  disputeTypes: DisputeType[];
+  quote: string;
+  source: "rules" | "claude";
+  /** Figures or dates Claude returned that do not appear in the reply and were discarded. */
+  rejected: number;
+}
+
+export const NEGOTIATION_DECISIONS = [
+  "accept_offer",
+  "counter_offer",
+  "confirm_promise",
+  "ask_for_date",
+  "chase_balance",
+  "request_remittance",
+  "close_settled",
+  "rebut_dispute",
+  "hold_and_review",
+  "send_evidence",
+  "remind",
+  "escalate",
+  "wait",
+] as const;
+export type NegotiationDecision = (typeof NEGOTIATION_DECISIONS)[number];
+
+export type WakeupKind = "reply" | "deadline";
+export type WakeupStatus = "scheduled" | "processing" | "done" | "cancelled" | "failed";
+
+export interface NegotiationOutput {
+  trigger: WakeupKind;
+  summary: string;
+  analysis: ReplyAnalysis | null;
+  /** Lowest figure currently on the table (what the debtor must pay to settle). */
+  demandPence: number;
+  /** Defensible principal: the agent never proposes settling below it. */
+  floorPence: number;
+  decision: NegotiationDecision;
+  rationale: string;
+  proposals: ProposalDraft[];
+}
+
+export interface Wakeup {
+  id: string;
+  runId: string;
+  caseId: string;
+  kind: WakeupKind;
+  messageId: string | null;
+  reason: string;
+  dueAt: string;
+  status: WakeupStatus;
+  attempts: number;
+  leaseUntil: string | null;
+  engine: Engine | null;
+  output: NegotiationOutput | null;
+  error: string | null;
+  createdAt: string;
+  finishedAt: string | null;
 }

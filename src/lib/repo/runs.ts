@@ -52,7 +52,7 @@ const toStep = (r: StepRow): RunStep => ({
   error: r.error,
 });
 
-export const ACTIVE_RUN_STATUSES: RunStatus[] = ["queued", "running", "awaiting_approval"];
+export const ACTIVE_RUN_STATUSES: RunStatus[] = ["queued", "running", "awaiting_approval", "awaiting_response"];
 
 export function insertRun(caseId: string): Run {
   const db = getDb();

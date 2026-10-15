@@ -37,14 +37,21 @@ describe("approval gate", () => {
     expect(actions).toContain("system:executor action.executed");
   });
 
-  it("completes the run once every proposal is decided", async () => {
+  it("completes the run once every proposal is decided and no reply is expected", async () => {
     const { runId, proposals } = await pendingProposals();
-    decideProposal({ proposalId: proposals[0].id, decision: "approve", approver: "Priya", note: null, pin: null });
+    decideProposal({ proposalId: proposals[1].id, decision: "approve", approver: "Priya", note: null, pin: null });
     expect(getRun(runId)?.status).toBe("awaiting_approval");
-    decideProposal({ proposalId: proposals[1].id, decision: "reject", approver: "Priya", note: "Wait for LBA", pin: null });
+    decideProposal({ proposalId: proposals[0].id, decision: "reject", approver: "Priya", note: "Hold the letter", pin: null });
     expect(getRun(runId)?.status).toBe("completed");
     expect(getCase("case-northbank-lumen")?.status).toBe("resolved");
-    expect(() => decideProposal({ proposalId: proposals[1].id, decision: "approve", approver: "x", note: null, pin: null })).toThrow(DecisionError);
+    expect(() => decideProposal({ proposalId: proposals[0].id, decision: "approve", approver: "x", note: null, pin: null })).toThrow(DecisionError);
+  });
+
+  it("keeps the run alive, waiting for the debtor, once a letter expecting a reply is sent", async () => {
+    const { runId, proposals } = await pendingProposals();
+    proposals.forEach((p) => decideProposal({ proposalId: p.id, decision: p.kind === "send_letter_before_action" ? "approve" : "reject", approver: "Priya", note: null, pin: null }));
+    expect(getRun(runId)?.status).toBe("awaiting_response");
+    expect(getCase("case-northbank-lumen")?.status).toBe("awaiting_response");
   });
 
   it("leaves the case open when everything is rejected", async () => {

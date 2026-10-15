@@ -2,13 +2,14 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import type { CaseDocument, ChallengeOutput, DisputeCase, EvidenceOutput, Proposal, ReconciliationOutput, ResolutionOutput, Run, RunStep } from "@/lib/types";
+import type { CaseDocument, ChallengeOutput, CorrespondenceMessage, DisputeCase, EvidenceOutput, Proposal, ReconciliationOutput, ResolutionOutput, Run, RunStep, Wakeup } from "@/lib/types";
 import { ChallengePanel, EvidencePanel, ReconciliationPanel, ResolutionSummary } from "@/components/AgentPanels";
 import { ApprovalGate } from "@/components/ApprovalGate";
 import { api, usePoll } from "@/components/api";
 import { ChainConsole } from "@/components/ChainConsole";
 import { humanise, money } from "@/components/format";
 import { LedgerPanel } from "@/components/LedgerPanel";
+import { NegotiationPanel } from "@/components/negotiation/NegotiationPanel";
 import { Pipeline } from "@/components/Pipeline";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { SystemStatus } from "@/components/SystemBar";
@@ -21,18 +22,26 @@ interface CaseDetail {
   run: Run | null;
   steps: RunStep[];
   proposals: Proposal[];
+  negotiation: { demandPence: number | null; floorPence: number | null };
+  correspondence: CorrespondenceMessage[];
+  turns: Wakeup[];
+  nextWakeup: Wakeup | null;
 }
 
 /** One plain-language instruction for whatever the user should do next. */
-function NextStep({ runStatus, pending, onRun, canRun, starting }: { runStatus: string | null; pending: number; onRun: () => void; canRun: boolean; starting: boolean }) {
+function NextStep({ runStatus, caseStatus, debtor, pending, onRun, canRun, starting }: { runStatus: string | null; caseStatus: string; debtor: string; pending: number; onRun: () => void; canRun: boolean; starting: boolean }) {
   const steps: Record<string, { tone: string; title: string; body: string }> = {
     none: { tone: "border-line-2", title: "Ready when you are", body: "Run the agents to review the documents, check the numbers and draft a response. Takes a few seconds; nothing is sent." },
     queued: { tone: "border-info/40", title: "Agents are working", body: "Follow each step in the pipeline below and watch every action land in the on-chain log on the right." },
     awaiting_approval: { tone: "border-warn/40", title: `${pending} drafted ${pending === 1 ? "action needs" : "actions need"} your decision`, body: "Open each one below, read the document, then approve or reject it. Only approved actions are carried out, and your decision is recorded on-chain." },
+    awaiting_response: { tone: "border-info/40", title: `Waiting for ${debtor} to reply`, body: "The letter has gone out and the Negotiation agent is asleep. A reply logged below wakes it immediately; if none arrives, it wakes when the follow-up timer fires." },
     completed: { tone: "border-good/40", title: "All decisions recorded", body: "Every approved action has been carried out. Verify the audit trail against the blockchain at the bottom of the page." },
+    escalated: { tone: "border-warn/40", title: "Escalated to a court claim", body: "The pre-action steps are complete and the claim pack is filed to the case folder. It is not submitted to court automatically." },
+    closed: { tone: "border-line-2", title: "Case closed", body: "Follow-up has stopped. Every step of the negotiation is in the audit trail below." },
     failed: { tone: "border-bad/40", title: "The run failed", body: "Something went wrong after several retries. Check the error, then run the agents again." },
   };
-  const key = runStatus === "running" ? "queued" : (runStatus ?? "none");
+  const finished = runStatus === "completed" && (caseStatus === "escalated" || caseStatus === "closed") ? caseStatus : null;
+  const key = runStatus === "running" ? "queued" : (finished ?? runStatus ?? "none");
   const s = steps[key] ?? steps.none;
   return (
     <section aria-live="polite" className={`card reveal flex flex-wrap items-center gap-4 border-l-2 px-5 py-4 ${s.tone}`}>
@@ -46,6 +55,11 @@ function NextStep({ runStatus, pending, onRun, canRun, starting }: { runStatus: 
     </section>
   );
 }
+
+/** Newest drafts first, so the agent's latest move opens at the top of the gate. */
+const pendingFirst = (proposals: Proposal[]) => [...proposals.filter((p) => p.status === "pending").reverse(), ...proposals.filter((p) => p.status !== "pending").reverse()];
+/** Remount the gate when a new batch arrives so the first pending draft opens. */
+const pendingKey = (proposals: Proposal[]) => proposals.filter((p) => p.status === "pending").map((p) => p.id).join(",") || "decided";
 
 const output = <T,>(steps: RunStep[], agent: string) => steps.find((s) => s.agent === agent && s.status === "done")?.output as T | undefined;
 
@@ -86,7 +100,8 @@ export default function CasePage() {
   if (!data) return <p className="font-mono text-[12px] text-ink-3">Loading case…</p>;
 
   const { case: c, run, steps } = data;
-  const busy = run !== null && ["queued", "running"].includes(run.status);
+  const turnBusy = data.turns.some((t) => t.status === "processing");
+  const busy = (run !== null && ["queued", "running"].includes(run.status)) || turnBusy;
   const canRun = !run || ["completed", "failed"].includes(run.status);
 
   async function startRun() {
@@ -143,13 +158,26 @@ export default function CasePage() {
         </div>
       </Reveal>
 
-      <NextStep runStatus={run?.status ?? null} pending={data.proposals.filter((p) => p.status === "pending").length} onRun={startRun} canRun={canRun} starting={starting} />
-      <Reveal delay={100}><Pipeline steps={steps} runStatus={run?.status ?? null} /></Reveal>
+      <NextStep runStatus={run?.status ?? null} caseStatus={c.status} debtor={c.debtor} pending={data.proposals.filter((p) => p.status === "pending").length} onRun={startRun} canRun={canRun} starting={starting} />
+      <Reveal delay={100}><Pipeline steps={steps} runStatus={run?.status ?? null} turns={data.turns} /></Reveal>
       {run?.status === "failed" && <p role="alert" className="card border-bad/50 p-4 text-sm text-bad">Run failed: {run.error}</p>}
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_480px]">
         <div className="min-w-0 space-y-6">
-          {data.proposals.length > 0 && <ApprovalGate proposals={data.proposals} pinRequired={system?.approvalPinRequired ?? false} onDecided={refresh} />}
+          {data.proposals.length > 0 && <ApprovalGate key={pendingKey(data.proposals)} proposals={pendingFirst(data.proposals)} pinRequired={system?.approvalPinRequired ?? false} onDecided={refresh} />}
+          {(data.correspondence.length > 0 || data.turns.length > 0) && (
+            <NegotiationPanel
+              caseFile={c}
+              runStatus={run?.status ?? null}
+              correspondence={data.correspondence}
+              turns={data.turns}
+              nextWakeup={data.nextWakeup}
+              demandPence={data.negotiation.demandPence}
+              floorPence={data.negotiation.floorPence}
+              demoMode={system?.demoMode ?? false}
+              onChanged={refresh}
+            />
+          )}
           <Reveal delay={150}><CaseFile documents={data.documents} /></Reveal>
           {(evidence || recon || challenge || resolution) && <h2 className="label pt-2">What the agents found</h2>}
           <div className="grid gap-6 2xl:grid-cols-2">

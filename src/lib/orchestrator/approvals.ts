@@ -5,10 +5,10 @@ import { config } from "../config";
 import { nowIso } from "../db";
 import { appendEntry } from "../ledger/ledger";
 import { formatPence } from "../money";
-import { getCase, setCaseStatus } from "../repo/cases";
-import { getProposal, listProposals, recordDecision, recordExecution } from "../repo/proposals";
-import { getRun, updateRun } from "../repo/runs";
+import { getCase } from "../repo/cases";
+import { getProposal, recordDecision, recordExecution } from "../repo/proposals";
 import type { Proposal } from "../types";
+import { afterDecision, armFollowUp, recordOutbound } from "./engagement";
 
 export class ApprovalRequiredError extends Error {}
 export class DecisionError extends Error {}
@@ -46,7 +46,7 @@ export function decideProposal(input: DecisionInput): Proposal {
     payload: { proposalId: proposal.id, kind: proposal.kind, amountPence: proposal.amountPence, note: input.note },
   });
   if (status === "approved") executeProposal(proposal.id);
-  closeRunIfDecided(proposal.runId);
+  afterDecision(proposal.runId, proposal.turnId);
   return getProposal(proposal.id)!;
 }
 
@@ -63,6 +63,15 @@ function dispatchDescription(p: Proposal, debtorEmail: string | null): string {
       return "Money Claim Online pack generated and filed to the case folder (not submitted to court).";
     case "write_off":
       return `Balance of ${formatPence(p.amountPence)} flagged for write-off in the sales ledger.`;
+    case "send_reply":
+    case "send_reminder":
+      return `“${p.documentTitle}” (${formatPence(p.amountPence)}) queued for delivery to ${to}.`;
+    case "accept_offer":
+      return `Acceptance of ${formatPence(p.amountPence)} in settlement queued for delivery to ${to}.`;
+    case "escalate_court_claim":
+      return `Claim pack for ${formatPence(p.amountPence)} filed to the case folder for issue (not submitted to court automatically).`;
+    case "close_case":
+      return p.amountPence > 0 ? `Case closed as settled (${formatPence(p.amountPence)} received).` : "Case closed.";
   }
 }
 
@@ -76,23 +85,14 @@ export function executeProposal(proposalId: string): Proposal {
   const caseFile = getCase(proposal.caseId);
   const result = dispatchDescription(proposal, caseFile?.debtorEmail ?? null);
   recordExecution(proposal.id, result, nowIso());
+  const message = recordOutbound(proposal);
   appendEntry({
     caseId: proposal.caseId,
     runId: proposal.runId,
     actor: "system:executor",
     action: "action.executed",
-    payload: { proposalId: proposal.id, kind: proposal.kind, result, approvedBy: proposal.decidedBy },
+    payload: { proposalId: proposal.id, kind: proposal.kind, result, approvedBy: proposal.decidedBy, messageId: message?.id ?? null },
   });
+  armFollowUp(proposal);
   return getProposal(proposal.id)!;
-}
-
-function closeRunIfDecided(runId: string): void {
-  const run = getRun(runId);
-  if (!run || run.status !== "awaiting_approval") return;
-  const proposals = listProposals(runId);
-  if (proposals.some((p) => p.status === "pending")) return;
-  const executed = proposals.filter((p) => p.status === "executed").length;
-  updateRun(runId, { status: "completed", completedAt: nowIso() });
-  setCaseStatus(run.caseId, executed > 0 ? "resolved" : "open");
-  appendEntry({ caseId: run.caseId, runId, actor: "system:orchestrator", action: "run.completed", payload: { executed, rejected: proposals.length - executed } });
 }

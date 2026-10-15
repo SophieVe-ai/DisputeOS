@@ -9,6 +9,7 @@ import {
   courtClaimPack,
   creditNote,
   letterBeforeAction,
+  PAYMENT_WINDOW_DAYS,
   settlementOffer,
   totalDemand,
   writeOffMemo,
@@ -38,9 +39,9 @@ export function draftProposals(input: LetterInput): ProposalDraft[] {
     return proposals;
   }
   const total = totalDemand(input);
-  proposals.push({ kind: "send_letter_before_action", title: `Send letter before action for ${formatPence(total)}`, rationale: `Formal demand for the defensible principal plus statutory interest and compensation, giving 14 days to pay (Practice Direction – Pre-Action Conduct).`, amountPence: total, documentTitle: "Letter before action", documentBody: letterBeforeAction(input) });
+  proposals.push({ kind: "send_letter_before_action", title: `Send letter before action for ${formatPence(total)}`, rationale: `Formal demand for the defensible principal plus statutory interest and compensation, giving 14 days to pay (Practice Direction – Pre-Action Conduct).`, amountPence: total, documentTitle: "Letter before action", documentBody: letterBeforeAction(input), followUpDays: PAYMENT_WINDOW_DAYS });
   if (challenge.recommendation === "negotiate" || challenge.recommendation === "pursue_reduced") {
-    proposals.push({ kind: "offer_settlement", title: `Offer settlement at ${formatPence(challenge.defensiblePrincipalPence)}`, rationale: "Some debtor points have merit. Waiving interest for prompt payment is cheaper than litigation and preserves the relationship.", amountPence: challenge.defensiblePrincipalPence, documentTitle: "Settlement offer", documentBody: settlementOffer(input) });
+    proposals.push({ kind: "offer_settlement", title: `Offer settlement at ${formatPence(challenge.defensiblePrincipalPence)}`, rationale: "Some debtor points have merit. Waiving interest for prompt payment is cheaper than litigation and preserves the relationship.", amountPence: challenge.defensiblePrincipalPence, documentTitle: "Settlement offer", documentBody: settlementOffer(input), followUpDays: PAYMENT_WINDOW_DAYS });
   }
   if (reconciliation.daysOverdue > COURT_PACK_MIN_DAYS_OVERDUE && challenge.confidence >= COURT_PACK_MIN_CONFIDENCE) {
     proposals.push({ kind: "prepare_court_claim", title: "Prepare Money Claim Online pack", rationale: `${reconciliation.daysOverdue} days overdue with ${Math.round(challenge.confidence * 100)}% confidence. Ready to file if the letter-before-action deadline passes.`, amountPence: total, documentTitle: "Draft particulars of claim", documentBody: courtClaimPack(input) });

@@ -51,6 +51,10 @@ export const config = {
   get approvalPin(): string | null {
     return process.env.APPROVAL_PIN || null;
   },
+  /** Length of a "day" for follow-up timers. Shorten (e.g. 5000) to watch a negotiation unfold live. */
+  get followUpDayMs(): number {
+    return numberEnv("FOLLOW_UP_DAY_MS", 86_400_000);
+  },
   get workerEnabled(): boolean {
     return process.env.DISABLE_WORKER !== "1";
   },
