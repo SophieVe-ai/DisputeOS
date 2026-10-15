@@ -1,4 +1,14 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { connectEvmAnchor, type AnchorClient } from "./anchor";
+
+/** An anchor scoped to one async call tree (the eval sandbox's in-memory chain). Shared across module copies. */
+const scopedStore = globalThis as unknown as { __disputeosAnchorScope?: AsyncLocalStorage<AnchorClient> };
+const scoped = (scopedStore.__disputeosAnchorScope ??= new AsyncLocalStorage<AnchorClient>());
+
+/** Runs `fn` with `client` as the chain, without touching the app's live connection. */
+export function withAnchor<T>(client: AnchorClient, fn: () => Promise<T>): Promise<T> {
+  return scoped.run(client, fn);
+}
 
 const RETRY_AFTER_MS = 5_000;
 
@@ -19,6 +29,8 @@ function state(): AnchorState {
 
 /** Returns a connected anchor client, or null if the chain is unavailable (retries with backoff). */
 export async function getAnchor(): Promise<AnchorClient | null> {
+  const sandbox = scoped.getStore();
+  if (sandbox) return sandbox;
   const s = state();
   if (s.client) return s.client;
   if (s.override) return null;

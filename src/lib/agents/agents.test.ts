@@ -32,7 +32,9 @@ function makeCtx(caseIndex: number, opts: { llm?: LlmClient | null; docs?: CaseD
     baseRatePercent: 4,
     prior: opts.prior ?? {},
     llm: opts.llm ?? null,
-    log: (action, payload) => logs.push({ action, payload }),
+    log: async (action, payload) => {
+      logs.push({ action, payload });
+    },
     pace: async () => undefined,
   };
   return { ctx, logs };

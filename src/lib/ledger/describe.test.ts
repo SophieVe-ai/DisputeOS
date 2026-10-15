@@ -7,17 +7,17 @@ import { actorName, describeEntry } from "./describe";
 import { appendEntry, listEntries } from "./ledger";
 
 describe("describeEntry", () => {
-  beforeEach(() => {
-    freshEnvironment({ seed: true });
+  beforeEach(async () => {
+    await freshEnvironment({ seed: true });
   });
 
   it("gives every action in a full run a specific plain-English sentence", async () => {
-    const run = startRun("case-harbour-kestrel", "Megan Hughes");
+    const run = await startRun("case-harbour-kestrel", "Megan Hughes");
     await runToCompletion(run.id, AS_OF);
-    const [first, second] = listProposals(run.id);
-    decide({ proposalId: first.id, decision: "approve", approver: "Megan Hughes", note: null, pin: null });
-    decide({ proposalId: second.id, decision: "reject", approver: "Megan Hughes", note: "not yet", pin: null });
-    const entries = listEntries({ caseId: "case-harbour-kestrel", limit: 500 });
+    const [first, second] = await listProposals(run.id);
+    await decide({ proposalId: first.id, decision: "approve", approver: "Megan Hughes", note: null, pin: null });
+    await decide({ proposalId: second.id, decision: "reject", approver: "Megan Hughes", note: "not yet", pin: null });
+    const entries = await listEntries({ caseId: "case-harbour-kestrel", limit: 500 });
     const generic = entries.filter((e) => e.description.includes(`: ${e.action.replace(/_/g, " ").replace(".", " ")}`));
     expect(generic.map((e) => e.action)).toEqual([]);
     const text = entries.map((e) => e.description);
@@ -50,8 +50,8 @@ describe("describeEntry", () => {
     expect(actorName("system:executor")).toBe("Executor");
   });
 
-  it("is exposed on every ledger entry", () => {
-    const e = appendEntry({ caseId: null, runId: null, actor: "system:orchestrator", action: "run.completed", payload: { executed: 1, rejected: 2 } });
+  it("is exposed on every ledger entry", async () => {
+    const e = await appendEntry({ caseId: null, runId: null, actor: "system:orchestrator", action: "run.completed", payload: { executed: 1, rejected: 2 } });
     expect(e.description).toBe("Run closed: 1 executed, 2 rejected.");
   });
 });

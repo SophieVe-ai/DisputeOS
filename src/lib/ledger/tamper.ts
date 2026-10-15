@@ -1,7 +1,7 @@
 // DEMO ONLY: simulates an insider / compromised agent with raw database access
 // rewriting a logged agent decision. It bypasses the append-only triggers and even
 // recomputes the row's own hashes — the on-chain anchor still exposes the change.
-import { getDb } from "../db";
+import { getDb, transaction } from "../db";
 import { canonicalJson, computeEntryHash, sha256Hex } from "./hash";
 
 export interface TamperResult {
@@ -11,16 +11,13 @@ export interface TamperResult {
   after: unknown;
 }
 
-export function tamperWithCase(caseId: string): TamperResult | null {
-  const db = getDb();
-  const target = db
-    .prepare(
-      `SELECT * FROM ledger_entries WHERE case_id = ? AND action IN ('challenge.completed', 'reconciliation.completed', 'evidence.completed')
-       ORDER BY CASE action WHEN 'challenge.completed' THEN 0 WHEN 'reconciliation.completed' THEN 1 ELSE 2 END, seq DESC LIMIT 1`,
-    )
-    .get(caseId) as
-    | { seq: number; case_id: string | null; run_id: string | null; actor: string; action: string; payload_json: string; prev_hash: string; created_at: string }
-    | undefined;
+export async function tamperWithCase(caseId: string): Promise<TamperResult | null> {
+  const db = await getDb();
+  const target = await db.one<{ seq: number; case_id: string | null; run_id: string | null; actor: string; action: string; payload_json: string; prev_hash: string; created_at: string }>(
+    `SELECT * FROM ledger_entries WHERE case_id = ? AND action IN ('challenge.completed', 'reconciliation.completed', 'evidence.completed')
+     ORDER BY CASE action WHEN 'challenge.completed' THEN 0 WHEN 'reconciliation.completed' THEN 1 ELSE 2 END, seq DESC LIMIT 1`,
+    [caseId],
+  );
   if (!target) return null;
 
   // Completed-step payloads look like { engine, output }. Inflate the agent's conclusion.
@@ -47,17 +44,12 @@ export function tamperWithCase(caseId: string): TamperResult | null {
     createdAt: target.created_at,
   });
 
-  db.transaction(() => {
-    db.exec("DROP TRIGGER IF EXISTS ledger_no_update");
-    db.prepare("UPDATE ledger_entries SET payload_json = ?, payload_hash = ?, entry_hash = ? WHERE seq = ?").run(
-      payloadJson,
-      payloadHash,
-      entryHash,
-      target.seq,
-    );
-    db.exec(
-      "CREATE TRIGGER ledger_no_update BEFORE UPDATE ON ledger_entries BEGIN SELECT RAISE(ABORT, 'ledger_entries is append-only'); END;",
-    );
-  })();
+  // The insider disables the append-only trigger, rewrites the row, and re-enables it.
+  await transaction(async () => {
+    const t = await getDb();
+    await t.exec("ALTER TABLE ledger_entries DISABLE TRIGGER ledger_no_update");
+    await t.run("UPDATE ledger_entries SET payload_json = ?, payload_hash = ?, entry_hash = ? WHERE seq = ?", [payloadJson, payloadHash, entryHash, target.seq]);
+    await t.exec("ALTER TABLE ledger_entries ENABLE TRIGGER ledger_no_update");
+  });
   return { seq: target.seq, action: target.action, before, after };
 }

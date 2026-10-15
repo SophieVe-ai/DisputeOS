@@ -39,26 +39,25 @@ export interface NewMessage {
   proposalId?: string | null;
 }
 
-export function insertMessage(input: NewMessage): CorrespondenceMessage {
+export async function insertMessage(input: NewMessage): Promise<CorrespondenceMessage> {
   const id = randomUUID();
-  getDb()
-    .prepare(
-      `INSERT INTO correspondence (id, case_id, run_id, direction, sender, subject, body, proposal_id, sha256, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-    .run(id, input.caseId, input.runId, input.direction, input.sender, input.subject, input.body, input.proposalId ?? null, sha256Hex(input.body), nowIso());
-  return getMessage(id)!;
+  await (await getDb()).run(
+    `INSERT INTO correspondence (id, case_id, run_id, direction, sender, subject, body, proposal_id, sha256, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, input.caseId, input.runId, input.direction, input.sender, input.subject, input.body, input.proposalId ?? null, sha256Hex(input.body), nowIso()],
+  );
+  return (await getMessage(id))!;
 }
 
-export function getMessage(id: string): CorrespondenceMessage | null {
-  const row = getDb().prepare("SELECT * FROM correspondence WHERE id = ?").get(id) as MessageRow | undefined;
+export async function getMessage(id: string): Promise<CorrespondenceMessage | null> {
+  const row = await (await getDb()).one<MessageRow>("SELECT * FROM correspondence WHERE id = ?", [id]);
   return row ? toMessage(row) : null;
 }
 
-export function listMessages(runId: string): CorrespondenceMessage[] {
-  return (getDb().prepare("SELECT * FROM correspondence WHERE run_id = ? ORDER BY created_at, rowid").all(runId) as MessageRow[]).map(toMessage);
+export async function listMessages(runId: string): Promise<CorrespondenceMessage[]> {
+  return (await (await getDb()).all<MessageRow>("SELECT * FROM correspondence WHERE run_id = ? ORDER BY created_at, ord", [runId])).map(toMessage);
 }
 
-export function countOutbound(runId: string): number {
-  return (getDb().prepare("SELECT COUNT(*) AS n FROM correspondence WHERE run_id = ? AND direction = 'outbound'").get(runId) as { n: number }).n;
+export async function countOutbound(runId: string): Promise<number> {
+  return (await (await getDb()).one<{ n: number }>("SELECT COUNT(*) AS n FROM correspondence WHERE run_id = ? AND direction = 'outbound'", [runId]))!.n;
 }

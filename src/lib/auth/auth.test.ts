@@ -53,8 +53,8 @@ describe("sign-up validation", () => {
 });
 
 describe("accounts and sessions", () => {
-  beforeEach(() => {
-    freshEnvironment();
+  beforeEach(async () => {
+    await freshEnvironment();
   });
 
   it("creates business and other accounts", async () => {
@@ -79,19 +79,19 @@ describe("accounts and sessions", () => {
   it("resolves sessions until they expire or are deleted", async () => {
     const user = await signUp(SignUpSchema.parse(BUSINESS));
     const now = new Date("2026-10-15T12:00:00Z");
-    const { token } = createSession(user.id, now);
-    expect(getSessionUser(token, now)?.id).toBe(user.id);
-    expect(getSessionUser(token, new Date(now.getTime() + SESSION_TTL_MS + 1))).toBeNull();
-    expect(getSessionUser("forged", now)).toBeNull();
-    expect(getSessionUser(null, now)).toBeNull();
-    deleteSession(token);
-    expect(getSessionUser(token, now)).toBeNull();
+    const { token } = await createSession(user.id, now);
+    expect((await getSessionUser(token, now))?.id).toBe(user.id);
+    expect(await getSessionUser(token, new Date(now.getTime() + SESSION_TTL_MS + 1))).toBeNull();
+    expect(await getSessionUser("forged", now)).toBeNull();
+    expect(await getSessionUser(null, now)).toBeNull();
+    await deleteSession(token);
+    expect(await getSessionUser(token, now)).toBeNull();
   });
 });
 
 describe("auth routes", () => {
-  beforeEach(() => {
-    freshEnvironment();
+  beforeEach(async () => {
+    await freshEnvironment();
   });
 
   const post = (body: unknown, cookie?: string) =>

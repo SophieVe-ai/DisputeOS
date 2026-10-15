@@ -212,7 +212,7 @@ export const challengeAgent: Agent<ChallengeOutput> = {
       creditor: ctx.caseFile.creditor,
       documents: ctx.documents,
     };
-    ctx.log("challenge.started", { disputes: input.evidence.facts.disputes.length });
+    await ctx.log("challenge.started", { disputes: input.evidence.facts.disputes.length });
     const rules = ruleChallenges(input);
     let challenges = rules;
     let engine: "claude" | "deterministic" = "deterministic";
@@ -221,12 +221,12 @@ export const challengeAgent: Agent<ChallengeOutput> = {
         challenges = [...rules, ...(await claudeChallenges(ctx, rules, input))];
         engine = "claude";
       } catch (err) {
-        ctx.log("challenge.claude_fallback", { reason: errorMessage(err) });
+        await ctx.log("challenge.claude_fallback", { reason: errorMessage(err) });
       }
     }
     for (const c of challenges) {
       await ctx.pace(0.3);
-      ctx.log("challenge.raised", { id: c.id, title: c.title, verdict: c.verdict, impactPence: c.impactPence });
+      await ctx.log("challenge.raised", { id: c.id, title: c.title, verdict: c.verdict, impactPence: c.impactPence });
     }
     const scored = { challenges, ...score(challenges, input.reconciliation) };
     return { output: { summary: summarise(scored, input.reconciliation), ...scored }, engine };

@@ -104,7 +104,7 @@ async function readUnparsedDocuments(ctx: AgentContext, rules: ExtractedFacts): 
   const merged = mergeFacts(ctx.documents, rules, extraction);
   for (const doc of unread) {
     const g = merged.grounded[doc.id];
-    ctx.log("evidence.facts_extracted", {
+    await ctx.log("evidence.facts_extracted", {
       docId: doc.id,
       title: doc.title,
       kind: doc.kind,
@@ -147,10 +147,10 @@ export const evidenceAgent: Agent<EvidenceOutput> = {
   name: "evidence",
   title: "Evidence agent",
   async run(ctx) {
-    ctx.log("evidence.started", { documentCount: ctx.documents.length });
+    await ctx.log("evidence.started", { documentCount: ctx.documents.length });
     for (const doc of ctx.documents) {
       await ctx.pace(0.25);
-      ctx.log("evidence.document_reviewed", {
+      await ctx.log("evidence.document_reviewed", {
         docId: doc.id,
         title: doc.title,
         kind: doc.kind,
@@ -162,7 +162,7 @@ export const evidenceAgent: Agent<EvidenceOutput> = {
     try {
       return { output: await enhanceWithClaude(ctx, base), engine: "claude" };
     } catch (err) {
-      ctx.log("evidence.claude_fallback", { reason: errorMessage(err) });
+      await ctx.log("evidence.claude_fallback", { reason: errorMessage(err) });
       return { output: base, engine: "deterministic" };
     }
   },

@@ -41,6 +41,9 @@ const toUser = (r: UserRow): User => ({
   createdAt: r.created_at,
 });
 
+/** Postgres SQLSTATE for a unique-constraint violation. */
+const UNIQUE_VIOLATION = "23505";
+
 const normaliseEmail = (email: string) => email.trim().toLowerCase();
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
@@ -58,18 +61,19 @@ export async function signUp(input: SignUpInput): Promise<User> {
     createdAt: nowIso(),
   };
   try {
-    getDb()
-      .prepare("INSERT INTO users (id, email, password_hash, account_type, business_name, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-      .run(user.id, user.email, passwordHash, user.accountType, user.businessName, user.createdAt);
+    await (await getDb()).run(
+      "INSERT INTO users (id, email, password_hash, account_type, business_name, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+      [user.id, user.email, passwordHash, user.accountType, user.businessName, user.createdAt],
+    );
   } catch (err) {
-    if ((err as { code?: string }).code === "SQLITE_CONSTRAINT_UNIQUE") throw new EmailTakenError("An account with this email already exists");
+    if ((err as { code?: string }).code === UNIQUE_VIOLATION) throw new EmailTakenError("An account with this email already exists");
     throw err;
   }
   return user;
 }
 
 export async function signIn(email: string, password: string): Promise<User> {
-  const row = getDb().prepare("SELECT * FROM users WHERE email = ?").get(normaliseEmail(email)) as UserRow | undefined;
+  const row = await (await getDb()).one<UserRow>("SELECT * FROM users WHERE email = ?", [normaliseEmail(email)]);
   if (!row) {
     dummyHash ??= hashPassword("not-a-real-password");
     await verifyPassword(password, await dummyHash);
@@ -79,33 +83,35 @@ export async function signIn(email: string, password: string): Promise<User> {
   return toUser(row);
 }
 
-export function getUser(id: string): User | null {
-  const row = getDb().prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow | undefined;
+export async function getUser(id: string): Promise<User | null> {
+  const row = await (await getDb()).one<UserRow>("SELECT * FROM users WHERE id = ?", [id]);
   return row ? toUser(row) : null;
 }
 
 /** Starts a session and returns the token to put in the cookie. */
-export function createSession(userId: string, now: Date = new Date()): { token: string; expiresAt: Date } {
+export async function createSession(userId: string, now: Date = new Date()): Promise<{ token: string; expiresAt: Date }> {
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(now.getTime() + SESSION_TTL_MS);
-  getDb()
-    .prepare("INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)")
-    .run(hashToken(token), userId, now.toISOString(), expiresAt.toISOString());
+  await (await getDb()).run("INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)", [
+    hashToken(token),
+    userId,
+    now.toISOString(),
+    expiresAt.toISOString(),
+  ]);
   return { token, expiresAt };
 }
 
-export function getSessionUser(token: string | null | undefined, now: Date = new Date()): User | null {
+export async function getSessionUser(token: string | null | undefined, now: Date = new Date()): Promise<User | null> {
   if (!token) return null;
-  const row = getDb()
-    .prepare(
-      `SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id
-       WHERE s.token_hash = ? AND s.expires_at > ?`,
-    )
-    .get(hashToken(token), now.toISOString()) as UserRow | undefined;
+  const row = await (await getDb()).one<UserRow>(
+    `SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id
+     WHERE s.token_hash = ? AND s.expires_at > ?`,
+    [hashToken(token), now.toISOString()],
+  );
   return row ? toUser(row) : null;
 }
 
-export function deleteSession(token: string | null | undefined): void {
+export async function deleteSession(token: string | null | undefined): Promise<void> {
   if (!token) return;
-  getDb().prepare("DELETE FROM sessions WHERE token_hash = ?").run(hashToken(token));
+  await (await getDb()).run("DELETE FROM sessions WHERE token_hash = ?", [hashToken(token)]);
 }

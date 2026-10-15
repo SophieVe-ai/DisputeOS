@@ -157,18 +157,37 @@ describe("ledger descriptions for the negotiation", () => {
   });
 });
 
-describe("database upgrade", () => {
-  it("adds the negotiation columns and tables to a database created before them", async () => {
-    const Database = (await import("better-sqlite3")).default;
+describe("database schema", () => {
+  it("creates the negotiation and eval tables and the negotiation proposal columns", async () => {
     const { openDb } = await import("../db");
-    const file = `${(await import("node:os")).tmpdir()}/disputeos-upgrade-${Date.now()}.db`;
-    const legacy = new Database(file);
-    legacy.exec("CREATE TABLE proposals (id TEXT PRIMARY KEY, run_id TEXT, case_id TEXT, kind TEXT, title TEXT, rationale TEXT, amount_pence INTEGER, document_title TEXT, document_body TEXT, status TEXT, decided_by TEXT, decided_at TEXT, decision_note TEXT, executed_at TEXT, execution_result TEXT)");
-    legacy.close();
-    const db = openDb(file);
-    const columns = (db.prepare("PRAGMA table_info(proposals)").all() as { name: string }[]).map((c) => c.name);
-    expect(columns).toEqual(expect.arrayContaining(["turn_id", "follow_up_days"]));
-    expect(db.prepare("SELECT name FROM sqlite_master WHERE name IN ('correspondence', 'run_wakeups')").all()).toHaveLength(2);
-    db.close();
-  });
+    const db = await openDb("memory://");
+    try {
+      const columns = (await db.all<{ column_name: string }>("SELECT column_name FROM information_schema.columns WHERE table_name = 'proposals'")).map((c) => c.column_name);
+      expect(columns).toEqual(expect.arrayContaining(["turn_id", "follow_up_days"]));
+      const tables = await db.all<{ table_name: string }>(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('correspondence', 'run_wakeups', 'eval_runs')",
+      );
+      expect(tables.map((t) => t.table_name).sort()).toEqual(["correspondence", "eval_runs", "run_wakeups"]);
+    } finally {
+      await db.close();
+    }
+  }, 30_000);
+
+  it("re-opening an existing database is idempotent and keeps its data", async () => {
+    const os = await import("node:os");
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const { openDb } = await import("../db");
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "disputeos-schema-"));
+    try {
+      const first = await openDb(dir);
+      await first.run("INSERT INTO cases (id, reference, title, creditor, debtor, claimed_amount_pence, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", ["c1", "DOS-1", "T", "A", "B", 100, "open", "2026-10-15"]);
+      await first.close();
+      const second = await openDb(dir);
+      expect(await second.one<{ n: number }>("SELECT COUNT(*)::int AS n FROM cases")).toEqual({ n: 1 });
+      await second.close();
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }, 30_000);
 });

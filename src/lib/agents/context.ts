@@ -24,7 +24,7 @@ export interface AgentContext {
     readonly challenge?: ChallengeOutput;
   };
   readonly llm: LlmClient | null;
-  log(action: string, payload?: unknown): void;
+  log(action: string, payload?: unknown): Promise<void>;
   pace(fraction?: number): Promise<void>;
 }
 

@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["better-sqlite3"],
+  // PGlite ships WebAssembly + data files; load it from node_modules rather than bundling it.
+  serverExternalPackages: ["@electric-sql/pglite", "pg"],
   turbopack: {
     rules: {
       "*.css": {

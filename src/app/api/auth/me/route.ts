@@ -5,8 +5,8 @@ import { handle, ok } from "@/lib/api/http";
 import { sessionToken } from "@/lib/api/session";
 
 export async function GET(request: NextRequest) {
-  return handle(() => {
-    const user = getSessionUser(sessionToken(request));
+  return handle(async () => {
+    const user = await getSessionUser(sessionToken(request));
     return ok({ user: user ? publicUser(user) : null });
   });
 }

@@ -9,20 +9,20 @@ import { AGENTS } from "./registry";
 import { advanceRun, MAX_ATTEMPTS, RunConflictError, runToCompletion, startRun } from "./runner";
 
 async function runCase(caseId: string) {
-  const run = startRun(caseId, "tester");
+  const run = await startRun(caseId, "tester");
   const done = await runToCompletion(run.id, AS_OF);
-  const steps = getSteps(run.id);
+  const steps = await getSteps(run.id);
   return {
     run: done,
     recon: steps[1].output as ReconciliationOutput,
     challenge: steps[2].output as ChallengeOutput,
-    proposals: listProposals(run.id),
+    proposals: await listProposals(run.id),
   };
 }
 
 describe("agent pipeline", () => {
-  beforeEach(() => {
-    freshEnvironment({ seed: true });
+  beforeEach(async () => {
+    await freshEnvironment({ seed: true });
   });
 
   it("Harbour Joinery: upholds the in-time damage claim and rebuts the late one", async () => {
@@ -37,7 +37,7 @@ describe("agent pipeline", () => {
     expect(challenge.recommendation).toBe("pursue_reduced");
     expect(proposals.map((p) => p.kind)).toEqual(["send_letter_before_action", "offer_settlement", "prepare_court_claim"]);
     expect(proposals[0].documentBody).toContain("£11,765.00");
-    expect(getCase("case-harbour-kestrel")?.status).toBe("awaiting_approval");
+    expect((await getCase("case-harbour-kestrel"))?.status).toBe("awaiting_approval");
   });
 
   it("Northbank Print: clean debt is pursued in full", async () => {
@@ -60,7 +60,7 @@ describe("agent pipeline", () => {
 
   it("logs every agent action to the ledger with a fixed actor", async () => {
     await runCase("case-northbank-lumen");
-    const actions = listEntries({ caseId: "case-northbank-lumen" }).map((e) => `${e.actor} ${e.action}`);
+    const actions = (await listEntries({ caseId: "case-northbank-lumen" })).map((e) => `${e.actor} ${e.action}`);
     for (const agent of ["evidence", "reconciliation", "challenge", "resolution"]) {
       expect(actions).toContain(`agent:${agent} ${agent}.completed`);
     }
@@ -68,21 +68,21 @@ describe("agent pipeline", () => {
     expect(actions.filter((a) => a.includes("evidence.document_reviewed"))).toHaveLength(5);
   });
 
-  it("refuses a second concurrent run for the same case", () => {
-    startRun("case-peak-ashford", "tester");
-    expect(() => startRun("case-peak-ashford", "tester")).toThrow(RunConflictError);
+  it("refuses a second concurrent run for the same case", async () => {
+    await startRun("case-peak-ashford", "tester");
+    await expect(startRun("case-peak-ashford", "tester")).rejects.toThrow(RunConflictError);
   });
 
   it("retries a failing agent and fails the run after max attempts", async () => {
     const spy = vi.spyOn(AGENTS.evidence, "run").mockRejectedValue(new Error("boom"));
-    const run = startRun("case-peak-ashford", "tester");
-    updateRun(run.id, { status: "running" });
+    const run = await startRun("case-peak-ashford", "tester");
+    await updateRun(run.id, { status: "running" });
     let current = await advanceRun(run.id, AS_OF);
     expect(current.status).toBe("running");
     expect(current.attempts).toBe(1);
     for (let i = 1; i < MAX_ATTEMPTS; i++) current = await advanceRun(run.id, AS_OF);
     expect(current.status).toBe("failed");
-    expect(getCase("case-peak-ashford")?.status).toBe("open");
+    expect((await getCase("case-peak-ashford"))?.status).toBe("open");
     spy.mockRestore();
   });
 
@@ -95,8 +95,8 @@ describe("agent pipeline", () => {
       }).toThrow();
       throw new Error("stop");
     });
-    const run = startRun("case-peak-ashford", "tester");
-    updateRun(run.id, { status: "running" });
+    const run = await startRun("case-peak-ashford", "tester");
+    await updateRun(run.id, { status: "running" });
     await advanceRun(run.id, AS_OF);
     expect(spy).toHaveBeenCalled();
     spy.mockRestore();
@@ -104,17 +104,17 @@ describe("agent pipeline", () => {
 });
 
 describe("worker leasing", () => {
-  beforeEach(() => {
-    freshEnvironment({ seed: true });
+  beforeEach(async () => {
+    await freshEnvironment({ seed: true });
   });
 
-  it("leases a run exactly once until the lease expires (crash recovery)", () => {
-    const run = startRun("case-peak-ashford", "tester");
-    const claimed = claimNextRun(60_000);
+  it("leases a run exactly once until the lease expires (crash recovery)", async () => {
+    const run = await startRun("case-peak-ashford", "tester");
+    const claimed = await claimNextRun(60_000);
     expect(claimed?.id).toBe(run.id);
-    expect(claimNextRun(60_000)).toBeNull();
-    updateRun(run.id, { leaseUntil: new Date(Date.now() - 1000).toISOString() });
-    expect(claimNextRun(60_000)?.id).toBe(run.id);
-    expect(getRun(run.id)?.status).toBe("running");
+    expect(await claimNextRun(60_000)).toBeNull();
+    await updateRun(run.id, { leaseUntil: new Date(Date.now() - 1000).toISOString() });
+    expect((await claimNextRun(60_000))?.id).toBe(run.id);
+    expect((await getRun(run.id))?.status).toBe("running");
   });
 });

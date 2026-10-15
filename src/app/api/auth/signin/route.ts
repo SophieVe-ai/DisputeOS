@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   return handle(async () => {
     const { email, password } = SignInSchema.parse(body);
     const user = await signIn(email, password);
-    const session = createSession(user.id);
+    const session = await createSession(user.id);
     const res = ok({ user: publicUser(user) });
     setSessionCookie(res, session.token, session.expiresAt);
     return res;

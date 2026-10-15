@@ -7,13 +7,13 @@ import { appendEntry } from "./ledger";
 import { tamperWithCase } from "./tamper";
 
 describe("chain feed", () => {
-  beforeEach(() => {
-    freshEnvironment();
+  beforeEach(async () => {
+    await freshEnvironment();
   });
 
   it("returns entries oldest-first, joined to confirmed on-chain anchors", async () => {
-    appendEntry({ caseId: "c1", runId: null, actor: "agent:evidence", action: "a", payload: 1 });
-    appendEntry({ caseId: "c1", runId: null, actor: "agent:evidence", action: "b", payload: 2 });
+    await appendEntry({ caseId: "c1", runId: null, actor: "agent:evidence", action: "a", payload: 1 });
+    await appendEntry({ caseId: "c1", runId: null, actor: "agent:evidence", action: "b", payload: 2 });
     await flushAnchors();
     const feed = await chainFeed({ caseId: "c1" });
     expect(feed.entries.map((e) => e.action)).toEqual(["a", "b"]);
@@ -22,8 +22,8 @@ describe("chain feed", () => {
   });
 
   it("joins each entry to the EntryAnchored log the contract emitted for it", async () => {
-    appendEntry({ caseId: "c1", runId: null, actor: "agent:evidence", action: "a", payload: 1 });
-    appendEntry({ caseId: "c2", runId: null, actor: "agent:challenge", action: "b", payload: 2 });
+    await appendEntry({ caseId: "c1", runId: null, actor: "agent:evidence", action: "a", payload: 1 });
+    await appendEntry({ caseId: "c2", runId: null, actor: "agent:challenge", action: "b", payload: 2 });
     await flushAnchors();
     const [entry] = (await chainFeed({ caseId: "c2" })).entries;
     expect(entry.seq).toBe(2);
@@ -33,11 +33,11 @@ describe("chain feed", () => {
   });
 
   it("flags an entry whose database hash no longer matches its on-chain anchor", async () => {
-    freshEnvironment({ seed: true });
-    const run = startRun("case-harbour-kestrel", "tester");
+    await freshEnvironment({ seed: true });
+    const run = await startRun("case-harbour-kestrel", "tester");
     await runToCompletion(run.id, AS_OF);
     await flushAnchors();
-    const tampered = tamperWithCase("case-harbour-kestrel")!;
+    const tampered = (await tamperWithCase("case-harbour-kestrel"))!;
     const feed = await chainFeed({ caseId: "case-harbour-kestrel", limit: 300 });
     const hit = feed.entries.find((e) => e.seq === tampered.seq)!;
     expect(hit.hashMatches).toBe(false);
@@ -45,8 +45,8 @@ describe("chain feed", () => {
   });
 
   it("still lists entries as pending when the chain is unavailable", async () => {
-    freshEnvironment({ chain: false });
-    appendEntry({ caseId: null, runId: null, actor: "system", action: "boot", payload: null });
+    await freshEnvironment({ chain: false });
+    await appendEntry({ caseId: null, runId: null, actor: "system", action: "boot", payload: null });
     const feed = await chainFeed();
     expect(feed.chain.connected).toBe(false);
     expect(feed.entries).toHaveLength(1);

@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   const body = await readJson(request);
   return handle(async () => {
     const user = await signUp(SignUpSchema.parse(body));
-    const session = createSession(user.id);
+    const session = await createSession(user.id);
     const res = ok({ user: publicUser(user) }, 201);
     setSessionCookie(res, session.token, session.expiresAt);
     return res;

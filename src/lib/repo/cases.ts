@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { getDb, nowIso } from "../db";
+import { getDb, nowIso, transaction } from "../db";
 import type { CaseDocument, CaseStatus, DisputeCase, DocKind } from "../types";
 
 interface CaseRow {
@@ -57,39 +57,39 @@ export interface NewCaseInput {
   documents: { kind: DocKind; title: string; content: string; docDate: string | null }[];
 }
 
-export function createCase(input: NewCaseInput, id: string = randomUUID()): DisputeCase {
-  const db = getDb();
+export async function createCase(input: NewCaseInput, id: string = randomUUID()): Promise<DisputeCase> {
   const reference = input.reference ?? `DOS-${Date.now().toString(36).toUpperCase()}`;
-  db.transaction(() => {
-    db.prepare(
+  await transaction(async () => {
+    const db = await getDb();
+    await db.run(
       `INSERT INTO cases (id, reference, title, creditor, debtor, debtor_email, claimed_amount_pence, status, summary, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)`,
-    ).run(id, reference, input.title, input.creditor, input.debtor, input.debtorEmail, input.claimedAmountPence, input.summary, nowIso());
-    const insertDoc = db.prepare(
-      "INSERT INTO documents (id, case_id, kind, title, content, doc_date) VALUES (?, ?, ?, ?, ?, ?)",
+      [id, reference, input.title, input.creditor, input.debtor, input.debtorEmail, input.claimedAmountPence, input.summary, nowIso()],
     );
-    input.documents.forEach((d, i) => insertDoc.run(`${id.slice(0, 8)}-D${i + 1}`, id, d.kind, d.title, d.content, d.docDate));
-  })();
-  return getCase(id)!;
+    for (const [i, d] of input.documents.entries()) {
+      await db.run("INSERT INTO documents (id, case_id, kind, title, content, doc_date) VALUES (?, ?, ?, ?, ?, ?)", [`${id.slice(0, 8)}-D${i + 1}`, id, d.kind, d.title, d.content, d.docDate]);
+    }
+  });
+  return (await getCase(id))!;
 }
 
-export function getCase(id: string): DisputeCase | null {
-  const row = getDb().prepare("SELECT * FROM cases WHERE id = ?").get(id) as CaseRow | undefined;
+export async function getCase(id: string): Promise<DisputeCase | null> {
+  const row = await (await getDb()).one<CaseRow>("SELECT * FROM cases WHERE id = ?", [id]);
   return row ? toCase(row) : null;
 }
 
-export function listCases(): DisputeCase[] {
-  return (getDb().prepare("SELECT * FROM cases ORDER BY created_at DESC").all() as CaseRow[]).map(toCase);
+export async function listCases(): Promise<DisputeCase[]> {
+  return (await (await getDb()).all<CaseRow>("SELECT * FROM cases ORDER BY created_at DESC, ord DESC")).map(toCase);
 }
 
-export function countCases(): number {
-  return (getDb().prepare("SELECT COUNT(*) AS n FROM cases").get() as { n: number }).n;
+export async function countCases(): Promise<number> {
+  return (await (await getDb()).one<{ n: number }>("SELECT COUNT(*) AS n FROM cases"))!.n;
 }
 
-export function getDocuments(caseId: string): CaseDocument[] {
-  return (getDb().prepare("SELECT * FROM documents WHERE case_id = ? ORDER BY rowid").all(caseId) as DocRow[]).map(toDoc);
+export async function getDocuments(caseId: string): Promise<CaseDocument[]> {
+  return (await (await getDb()).all<DocRow>("SELECT * FROM documents WHERE case_id = ? ORDER BY ord", [caseId])).map(toDoc);
 }
 
-export function setCaseStatus(caseId: string, status: CaseStatus): void {
-  getDb().prepare("UPDATE cases SET status = ? WHERE id = ?").run(status, caseId);
+export async function setCaseStatus(caseId: string, status: CaseStatus): Promise<void> {
+  await (await getDb()).run("UPDATE cases SET status = ? WHERE id = ?", [status, caseId]);
 }

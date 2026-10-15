@@ -2,11 +2,12 @@
 // recorded human decision, and every decision is written to the anchored ledger.
 import { timingSafeEqual } from "node:crypto";
 import { config } from "../config";
-import { nowIso } from "../db";
+import { nowIso, transaction } from "../db";
 import { appendEntry } from "../ledger/ledger";
 import { formatPence } from "../money";
 import { getCase } from "../repo/cases";
 import { getProposal, recordDecision, recordExecution } from "../repo/proposals";
+import { lockRun } from "../repo/runs";
 import type { Proposal } from "../types";
 import { afterDecision, armFollowUp, recordOutbound } from "./engagement";
 
@@ -31,23 +32,33 @@ function pinMatches(given: string | null): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export function decideProposal(input: DecisionInput): Proposal {
+export async function decideProposal(input: DecisionInput): Promise<Proposal> {
   if (!pinMatches(input.pin)) throw new ForbiddenError("Invalid approval PIN");
-  const proposal = getProposal(input.proposalId);
-  if (!proposal) throw new DecisionError("Proposal not found");
+  const found = await getProposal(input.proposalId);
+  if (!found) throw new DecisionError("Proposal not found");
+  // One transaction, with the run locked: concurrent decisions on the same batch (from any
+  // server instance) are serialised, so the last one always sees the batch complete.
+  return transaction(async () => {
+    await lockRun(found.runId);
+    return decideLocked(input);
+  });
+}
+
+async function decideLocked(input: DecisionInput): Promise<Proposal> {
+  const proposal = (await getProposal(input.proposalId))!;
   if (proposal.status !== "pending") throw new DecisionError(`Proposal already ${proposal.status}`);
   const status = input.decision === "approve" ? "approved" : "rejected";
-  recordDecision(proposal.id, status, input.approver, input.note, nowIso());
-  appendEntry({
+  if (!(await recordDecision(proposal.id, status, input.approver, input.note, nowIso()))) throw new DecisionError("Proposal was decided by someone else");
+  await appendEntry({
     caseId: proposal.caseId,
     runId: proposal.runId,
     actor: `human:${input.approver}`,
     action: status === "approved" ? "approval.granted" : "approval.rejected",
     payload: { proposalId: proposal.id, kind: proposal.kind, amountPence: proposal.amountPence, note: input.note },
   });
-  if (status === "approved") executeProposal(proposal.id);
-  afterDecision(proposal.runId, proposal.turnId);
-  return getProposal(proposal.id)!;
+  if (status === "approved") await executeProposal(proposal.id);
+  await afterDecision(proposal.runId, proposal.turnId);
+  return (await getProposal(proposal.id))!;
 }
 
 function dispatchDescription(p: Proposal, debtorEmail: string | null): string {
@@ -76,23 +87,23 @@ function dispatchDescription(p: Proposal, debtorEmail: string | null): string {
 }
 
 /** Executes an approved proposal. Throws if no human approval has been recorded. */
-export function executeProposal(proposalId: string): Proposal {
-  const proposal = getProposal(proposalId);
+export async function executeProposal(proposalId: string): Promise<Proposal> {
+  const proposal = await getProposal(proposalId);
   if (!proposal) throw new DecisionError("Proposal not found");
   if (proposal.status !== "approved") {
     throw new ApprovalRequiredError(`Proposal ${proposalId} is ${proposal.status}; human approval is required before execution`);
   }
-  const caseFile = getCase(proposal.caseId);
+  const caseFile = await getCase(proposal.caseId);
   const result = dispatchDescription(proposal, caseFile?.debtorEmail ?? null);
-  recordExecution(proposal.id, result, nowIso());
-  const message = recordOutbound(proposal);
-  appendEntry({
+  await recordExecution(proposal.id, result, nowIso());
+  const message = await recordOutbound(proposal);
+  await appendEntry({
     caseId: proposal.caseId,
     runId: proposal.runId,
     actor: "system:executor",
     action: "action.executed",
     payload: { proposalId: proposal.id, kind: proposal.kind, result, approvedBy: proposal.decidedBy, messageId: message?.id ?? null },
   });
-  armFollowUp(proposal);
-  return getProposal(proposal.id)!;
+  await armFollowUp(proposal);
+  return (await getProposal(proposal.id))!;
 }

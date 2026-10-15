@@ -88,7 +88,7 @@ export const resolutionAgent: Agent<ResolutionOutput> = {
   title: "Resolution agent",
   async run(ctx) {
     const input = buildLetterInput(ctx);
-    ctx.log("resolution.started", { recommendation: input.challenge.recommendation });
+    await ctx.log("resolution.started", { recommendation: input.challenge.recommendation });
     let proposals = draftProposals(input);
     let strategy = defaultStrategy(input, proposals);
     let engine: "claude" | "deterministic" = "deterministic";
@@ -97,12 +97,12 @@ export const resolutionAgent: Agent<ResolutionOutput> = {
         ({ strategy, proposals } = await claudeDraft(ctx, input, proposals));
         engine = "claude";
       } catch (err) {
-        ctx.log("resolution.claude_fallback", { reason: errorMessage(err) });
+        await ctx.log("resolution.claude_fallback", { reason: errorMessage(err) });
       }
     }
     for (const p of proposals) {
       await ctx.pace(0.3);
-      ctx.log("resolution.document_drafted", { kind: p.kind, amountPence: p.amountPence, title: p.title });
+      await ctx.log("resolution.document_drafted", { kind: p.kind, amountPence: p.amountPence, title: p.title });
     }
     const summary = `Drafted ${proposals.length} action(s) for human approval.`;
     return { output: { summary, strategy, interestPence: input.interestPence, compensationPence: input.compensationPence, proposals }, engine };

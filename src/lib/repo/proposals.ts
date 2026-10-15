@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { getDb } from "../db";
+import { getDb, transaction } from "../db";
 import type { Proposal, ProposalDraft, ProposalKind, ProposalStatus } from "../types";
 
 interface ProposalRow {
@@ -42,42 +42,39 @@ const toProposal = (r: ProposalRow): Proposal => ({
   followUpDays: r.follow_up_days,
 });
 
-export function insertProposals(runId: string, caseId: string, drafts: ProposalDraft[], turnId: string | null = null): Proposal[] {
-  const db = getDb();
-  const stmt = db.prepare(
-    `INSERT INTO proposals (id, run_id, case_id, kind, title, rationale, amount_pence, document_title, document_body, status, turn_id, follow_up_days)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
-  );
+export async function insertProposals(runId: string, caseId: string, drafts: ProposalDraft[], turnId: string | null = null): Promise<Proposal[]> {
   const ids = drafts.map(() => randomUUID());
-  db.transaction(() => {
-    drafts.forEach((d, i) =>
-      stmt.run(ids[i], runId, caseId, d.kind, d.title, d.rationale, d.amountPence, d.documentTitle, d.documentBody, turnId, d.followUpDays ?? null),
-    );
-  })();
-  return ids.map((id) => getProposal(id)!);
+  await transaction(async () => {
+    const db = await getDb();
+    for (const [i, d] of drafts.entries()) {
+      await db.run(
+        `INSERT INTO proposals (id, run_id, case_id, kind, title, rationale, amount_pence, document_title, document_body, status, turn_id, follow_up_days)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+        [ids[i], runId, caseId, d.kind, d.title, d.rationale, d.amountPence, d.documentTitle, d.documentBody, turnId, d.followUpDays ?? null],
+      );
+    }
+  });
+  return Promise.all(ids.map(async (id) => (await getProposal(id))!));
 }
 
-export function getProposal(id: string): Proposal | null {
-  const row = getDb().prepare("SELECT * FROM proposals WHERE id = ?").get(id) as ProposalRow | undefined;
+export async function getProposal(id: string): Promise<Proposal | null> {
+  const row = await (await getDb()).one<ProposalRow>("SELECT * FROM proposals WHERE id = ?", [id]);
   return row ? toProposal(row) : null;
 }
 
-export function listProposals(runId: string): Proposal[] {
-  return (getDb().prepare("SELECT * FROM proposals WHERE run_id = ? ORDER BY rowid").all(runId) as ProposalRow[]).map(toProposal);
+export async function listProposals(runId: string): Promise<Proposal[]> {
+  return (await (await getDb()).all<ProposalRow>("SELECT * FROM proposals WHERE run_id = ? ORDER BY ord", [runId])).map(toProposal);
 }
 
-export function countPendingProposals(): number {
-  return (getDb().prepare("SELECT COUNT(*) AS n FROM proposals WHERE status = 'pending'").get() as { n: number }).n;
+export async function countPendingProposals(): Promise<number> {
+  return (await (await getDb()).one<{ n: number }>("SELECT COUNT(*) AS n FROM proposals WHERE status = 'pending'"))!.n;
 }
 
-export function recordDecision(id: string, status: "approved" | "rejected", by: string, note: string | null, at: string): void {
-  getDb()
-    .prepare("UPDATE proposals SET status = ?, decided_by = ?, decision_note = ?, decided_at = ? WHERE id = ? AND status = 'pending'")
-    .run(status, by, note, at, id);
+/** Records a decision on a still-pending proposal. Resolves false if someone else decided first. */
+export async function recordDecision(id: string, status: "approved" | "rejected", by: string, note: string | null, at: string): Promise<boolean> {
+  return (await (await getDb()).run("UPDATE proposals SET status = ?, decided_by = ?, decision_note = ?, decided_at = ? WHERE id = ? AND status = 'pending'", [status, by, note, at, id])) === 1;
 }
 
-export function recordExecution(id: string, result: string, at: string): void {
-  getDb()
-    .prepare("UPDATE proposals SET status = 'executed', executed_at = ?, execution_result = ? WHERE id = ? AND status = 'approved'")
-    .run(at, result, id);
+export async function recordExecution(id: string, result: string, at: string): Promise<void> {
+  await (await getDb()).run("UPDATE proposals SET status = 'executed', executed_at = ?, execution_result = ? WHERE id = ? AND status = 'approved'", [at, result, id]);
 }

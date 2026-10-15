@@ -1,7 +1,8 @@
 // Append-only, hash-chained audit ledger. Every agent action and human decision is
 // written here and anchored on-chain. Agents receive only an `append` closure (see
 // orchestrator/context.ts) — they cannot read keys, rewrite rows or touch the chain.
-import { getDb, nowIso } from "../db";
+import { config } from "../config";
+import { detached, getDb, inSandbox, nowIso, transaction } from "../db";
 import { anchorError, getAnchor, resetAnchor } from "./anchor-registry";
 import { describeEntry } from "./describe";
 import { canonicalJson, computeEntryHash, GENESIS_HASH, sha256Hex } from "./hash";
@@ -87,62 +88,56 @@ function toEntry(row: EntryRow): LedgerEntry {
   };
 }
 
-export function appendEntry(input: AppendInput): LedgerEntry {
-  const db = getDb();
-  const insert = db.transaction((): number => {
-    const last = db
-      .prepare("SELECT seq, entry_hash FROM ledger_entries ORDER BY seq DESC LIMIT 1")
-      .get() as { seq: number; entry_hash: string } | undefined;
-    const seq = (last?.seq ?? 0) + 1;
+/** Advisory-lock keys: one writer extends the hash chain at a time, one instance anchors at a time. */
+const LEDGER_LOCK = 4_242;
+const ANCHOR_LOCK = 4_243;
+
+export async function appendEntry(input: AppendInput): Promise<LedgerEntry> {
+  const seq = await transaction(async () => {
+    const db = await getDb();
+    // Serialises appends across server instances, so two writers can never fork the chain.
+    await db.one("SELECT pg_advisory_xact_lock(?)", [LEDGER_LOCK]);
+    const last = await db.one<{ seq: number; entry_hash: string }>("SELECT seq, entry_hash FROM ledger_entries ORDER BY seq DESC LIMIT 1");
+    const next = (last?.seq ?? 0) + 1;
     const prevHash = last?.entry_hash ?? GENESIS_HASH;
     const payloadJson = canonicalJson(input.payload ?? null);
     const payloadHash = sha256Hex(payloadJson);
     const createdAt = nowIso();
-    const entryHash = computeEntryHash({
-      seq,
-      caseId: input.caseId,
-      runId: input.runId,
-      actor: input.actor,
-      action: input.action,
-      payloadHash,
-      prevHash,
-      createdAt,
-    });
-    db.prepare(
+    const entryHash = computeEntryHash({ seq: next, caseId: input.caseId, runId: input.runId, actor: input.actor, action: input.action, payloadHash, prevHash, createdAt });
+    await db.run(
       `INSERT INTO ledger_entries (seq, case_id, run_id, actor, action, payload_json, payload_hash, prev_hash, entry_hash, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(seq, input.caseId, input.runId, input.actor, input.action, payloadJson, payloadHash, prevHash, entryHash, createdAt);
-    db.prepare("INSERT INTO ledger_anchors (seq, status) VALUES (?, 'pending')").run(seq);
-    return seq;
+      [next, input.caseId, input.runId, input.actor, input.action, payloadJson, payloadHash, prevHash, entryHash, createdAt],
+    );
+    await db.run("INSERT INTO ledger_anchors (seq, status) VALUES (?, 'pending')", [next]);
+    return next;
   });
-  const seq = insert();
-  void syncAnchors();
-  return getEntry(seq)!;
+  // Locally a long-lived process anchors straight away; on Vercel the request drain does it.
+  if (!config.serverless && !inSandbox()) detached(() => void syncAnchors());
+  return (await getEntry(seq))!;
 }
 
-export function getEntry(seq: number): LedgerEntry | null {
-  const row = getDb().prepare(`${SELECT_ENTRIES} WHERE e.seq = ?`).get(seq) as EntryRow | undefined;
+export async function getEntry(seq: number): Promise<LedgerEntry | null> {
+  const row = await (await getDb()).one<EntryRow>(`${SELECT_ENTRIES} WHERE e.seq = ?`, [seq]);
   return row ? toEntry(row) : null;
 }
 
-export function listEntries(opts: { caseId?: string; limit?: number } = {}): LedgerEntry[] {
-  const db = getDb();
+export async function listEntries(opts: { caseId?: string; limit?: number } = {}): Promise<LedgerEntry[]> {
+  const db = await getDb();
   const limit = Math.min(Math.max(opts.limit ?? 500, 1), 2000);
   const rows = opts.caseId
-    ? (db.prepare(`${SELECT_ENTRIES} WHERE e.case_id = ? ORDER BY e.seq DESC LIMIT ?`).all(opts.caseId, limit) as EntryRow[])
-    : (db.prepare(`${SELECT_ENTRIES} ORDER BY e.seq DESC LIMIT ?`).all(limit) as EntryRow[]);
+    ? await db.all<EntryRow>(`${SELECT_ENTRIES} WHERE e.case_id = ? ORDER BY e.seq DESC LIMIT ?`, [opts.caseId, limit])
+    : await db.all<EntryRow>(`${SELECT_ENTRIES} ORDER BY e.seq DESC LIMIT ?`, [limit]);
   return rows.map(toEntry);
 }
 
-export function ledgerStats(): { total: number; anchored: number; pending: number; errored: number } {
-  const row = getDb()
-    .prepare(
-      `SELECT COUNT(*) AS total,
-        SUM(CASE WHEN a.status = 'anchored' THEN 1 ELSE 0 END) AS anchored,
-        SUM(CASE WHEN a.status = 'error' THEN 1 ELSE 0 END) AS errored
-       FROM ledger_entries e LEFT JOIN ledger_anchors a ON a.seq = e.seq`,
-    )
-    .get() as { total: number; anchored: number | null; errored: number | null };
+export async function ledgerStats(): Promise<{ total: number; anchored: number; pending: number; errored: number }> {
+  const row = (await (await getDb()).one<{ total: number; anchored: number | null; errored: number | null }>(
+    `SELECT COUNT(*) AS total,
+       SUM(CASE WHEN a.status = 'anchored' THEN 1 ELSE 0 END)::int AS anchored,
+       SUM(CASE WHEN a.status = 'error' THEN 1 ELSE 0 END)::int AS errored
+     FROM ledger_entries e LEFT JOIN ledger_anchors a ON a.seq = e.seq`,
+  ))!;
   const anchored = row.anchored ?? 0;
   const errored = row.errored ?? 0;
   return { total: row.total, anchored, errored, pending: row.total - anchored - errored };
@@ -154,6 +149,7 @@ const g = globalThis as unknown as { __disputeosSync?: Promise<void> | null; __d
 
 /** Anchors all pending entries in order. Concurrent callers coalesce into one loop. */
 export function syncAnchors(): Promise<void> {
+  if (inSandbox()) return anchorPending(); // a sandbox has its own database and chain: never coalesce with the app's loop
   if (g.__disputeosSync) {
     g.__disputeosSyncAgain = true;
     return g.__disputeosSync;
@@ -173,34 +169,40 @@ export function syncAnchors(): Promise<void> {
   return g.__disputeosSync;
 }
 
+/** Anchors pending entries, but only on the one instance that wins the anchoring lock. */
 async function anchorPending(): Promise<void> {
+  const db = await getDb();
+  await db.tryLock(ANCHOR_LOCK, () => anchorPendingLocked());
+}
+
+async function anchorPendingLocked(): Promise<void> {
   const anchor = await getAnchor();
   if (!anchor) return;
-  const db = getDb();
+  anchor.beginSession();
+  const db = await getDb();
   const info = anchor.info();
   // A different contract (e.g. local chain restarted) means previous anchors no longer exist there.
-  db.prepare(
+  await db.run(
     "UPDATE ledger_anchors SET status = 'pending', tx_hash = NULL, block_number = NULL, error = NULL WHERE contract_address IS NOT NULL AND contract_address != ?",
-  ).run(info.contractAddress);
+    [info.contractAddress],
+  );
   // A restarted local chain can redeploy at the same address with an empty log:
   // re-queue any entry the chain no longer holds so anchoring self-heals instead of wedging.
   const onChainNow = await anchor.count();
-  db.prepare(
-    "UPDATE ledger_anchors SET status = 'pending', tx_hash = NULL, block_number = NULL, error = NULL WHERE status != 'pending' AND seq > ?",
-  ).run(onChainNow);
+  await db.run("UPDATE ledger_anchors SET status = 'pending', tx_hash = NULL, block_number = NULL, error = NULL WHERE status != 'pending' AND seq > ?", [onChainNow]);
 
-  const pending = db
-    .prepare(
-      `SELECT e.seq, e.case_id, e.actor, e.action, e.entry_hash, e.prev_hash
-       FROM ledger_entries e JOIN ledger_anchors a ON a.seq = e.seq
-       WHERE a.status != 'anchored' ORDER BY e.seq`,
-    )
-    .all() as { seq: number; case_id: string | null; actor: string; action: string; entry_hash: string; prev_hash: string }[];
-
-  const markAnchored = db.prepare(
-    `UPDATE ledger_anchors SET status = 'anchored', tx_hash = ?, block_number = ?, chain_id = ?, contract_address = ?, anchored_at = ?, error = NULL WHERE seq = ?`,
+  const pending = await db.all<{ seq: number; case_id: string | null; actor: string; action: string; entry_hash: string; prev_hash: string }>(
+    `SELECT e.seq, e.case_id, e.actor, e.action, e.entry_hash, e.prev_hash
+     FROM ledger_entries e JOIN ledger_anchors a ON a.seq = e.seq
+     WHERE a.status != 'anchored' ORDER BY e.seq`,
   );
-  const markError = db.prepare("UPDATE ledger_anchors SET status = 'error', error = ? WHERE seq = ?");
+
+  const markAnchored = (txHash: string | null, block: number | null, seq: number) =>
+    db.run(
+      "UPDATE ledger_anchors SET status = 'anchored', tx_hash = ?, block_number = ?, chain_id = ?, contract_address = ?, anchored_at = ?, error = NULL WHERE seq = ?",
+      [txHash, block, info.chainId, info.contractAddress, nowIso(), seq],
+    );
+  const markError = (error: string, seq: number) => db.run("UPDATE ledger_anchors SET status = 'error', error = ? WHERE seq = ?", [error, seq]);
 
   for (const row of pending) {
     try {
@@ -210,14 +212,14 @@ async function anchorPending(): Promise<void> {
         // Already on chain (e.g. a previous attempt timed out after mining). Confirm it is ours.
         const [hash] = await anchor.hashesInRange(index, index + 1);
         if (hash?.toLowerCase() !== row.entry_hash.toLowerCase()) {
-          markError.run(`On-chain slot ${index} holds a different hash — ledger diverged`, row.seq);
+          await markError(`On-chain slot ${index} holds a different hash — ledger diverged`, row.seq);
           return;
         }
-        markAnchored.run(null, null, info.chainId, info.contractAddress, nowIso(), row.seq);
+        await markAnchored(null, null, row.seq);
         continue;
       }
       if (onChain < index) {
-        markError.run(`Chain has ${onChain} entries; cannot anchor seq ${row.seq} out of order`, row.seq);
+        await markError(`Chain has ${onChain} entries; cannot anchor seq ${row.seq} out of order`, row.seq);
         return;
       }
       const receipt = await anchor.append({
@@ -227,10 +229,10 @@ async function anchorPending(): Promise<void> {
         actor: row.actor,
         action: row.action,
       });
-      markAnchored.run(receipt.txHash, receipt.blockNumber, info.chainId, info.contractAddress, nowIso(), row.seq);
+      await markAnchored(receipt.txHash, receipt.blockNumber, row.seq);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      markError.run(message.slice(0, 500), row.seq);
+      await markError(message.slice(0, 500), row.seq);
       resetAnchor(message);
       return;
     }
@@ -273,7 +275,7 @@ export interface VerificationReport {
 }
 
 export async function verifyLedger(caseId?: string): Promise<VerificationReport> {
-  const rows = getDb().prepare(`${SELECT_ENTRIES} ORDER BY e.seq ASC`).all() as EntryRow[];
+  const rows = await (await getDb()).all<EntryRow>(`${SELECT_ENTRIES} ORDER BY e.seq ASC`);
   const anchor = await getAnchor();
   let onChainHashes: string[] | null = null;
   let chainError: string | null = anchor ? null : anchorError();
