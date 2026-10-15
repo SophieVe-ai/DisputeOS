@@ -1,12 +1,10 @@
-import { ensureSeeded } from "./seed";
 import { startWorker } from "./orchestrator/worker";
 
 const g = globalThis as unknown as { __disputeosBooted?: boolean };
 
-/** Idempotent app bootstrap: seed demo data on first run and start the agent worker. */
+/** Idempotent app bootstrap: start the agent worker. Cases only ever come from users. */
 export function boot(): void {
   if (g.__disputeosBooted) return;
   g.__disputeosBooted = true;
-  ensureSeeded();
   startWorker();
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { detectDisputes, extractFacts, parseInvoice, parseLines } from "./parser";
-import { DEMO_CASES } from "./seed-data";
+import { FIXTURE_CASES as DEMO_CASES } from "./fixtures/cases";
 import type { CaseDocument } from "./types";
 
 const docsFor = (i: number): CaseDocument[] =>

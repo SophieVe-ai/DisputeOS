@@ -40,6 +40,7 @@
 
 html { color-scheme: dark; }
 body {
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
@@ -184,6 +185,47 @@ body {
 
 @keyframes node-glow { 0%, 12% { opacity: 0; } 4% { opacity: 1; } }
 .node-glow { animation: node-glow 7.5s linear infinite; opacity: 0; }
+
+/* ---------- Hero & illustration motion ---------- */
+@keyframes kenburns { from { transform: scale(1.02); } to { transform: scale(1.1); } }
+.kenburns { animation: kenburns 28s ease-in-out infinite alternate; transform-origin: 40% 50%; }
+
+@keyframes light-sweep { 0% { transform: translateX(-120%) skewX(-18deg); } 60%, 100% { transform: translateX(260%) skewX(-18deg); } }
+.light-sweep::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 28%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent);
+  animation: light-sweep 9s var(--ease-out) infinite;
+}
+
+@keyframes scan-y { 0% { transform: translateY(0); opacity: 0; } 10%, 90% { opacity: 1; } 100% { transform: translateY(var(--scan-distance, 96px)); opacity: 0; } }
+.scan-y { animation: scan-y 2.8s cubic-bezier(.45, 0, .55, 1) infinite; transform-box: fill-box; }
+
+@keyframes grow-x { 0%, 6% { transform: scaleX(0); opacity: 1; } 30%, 88% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
+.grow-x { animation: grow-x 4.8s var(--ease-out) infinite; transform-origin: left; transform-box: fill-box; }
+
+@keyframes settle { 0%, 40% { opacity: 0; transform: scale(.6); } 52%, 88% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+.settle { animation: settle 4.8s var(--ease-out) infinite; transform-origin: center; transform-box: fill-box; }
+
+@keyframes drop-block { 0%, 10% { transform: translateY(-46px); opacity: 0; } 35%, 88% { transform: none; opacity: 1; } 100% { transform: none; opacity: 0; } }
+.drop-block { animation: drop-block 4s var(--ease-out) infinite; transform-box: fill-box; }
+
+@keyframes draw-loop { 0%, 30% { stroke-dashoffset: var(--len, 40); opacity: 1; } 55%, 88% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+.draw-loop { stroke-dasharray: var(--len, 40); animation: draw-loop 4s var(--ease-out) infinite; }
+
+@keyframes pop-tag { 0%, 25% { opacity: 0; transform: translateY(4px); } 35%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+.pop-tag { animation: pop-tag 2.8s var(--ease-out) infinite; transform-box: fill-box; }
+
+@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.float-y { animation: float-y 6s ease-in-out infinite; }
+
+@keyframes march { to { stroke-dashoffset: -20; } }
+.march { stroke-dasharray: 6 4; animation: march .9s linear infinite; }
+
+@keyframes reticle-lock { 0% { transform: scale(1.6); opacity: 0; } 30% { opacity: 1; } 45%, 100% { transform: scale(1); opacity: 1; } }
+.reticle-lock { animation: reticle-lock 1.6s var(--ease-out) .6s both; transform-origin: center; transform-box: fill-box; }
+
+@keyframes gauge-fill { from { stroke-dashoffset: var(--circ); } }
+.gauge-fill { animation: gauge-fill 1.6s var(--ease-out) both; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }

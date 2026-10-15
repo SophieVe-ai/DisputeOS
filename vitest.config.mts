@@ -11,7 +11,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/lib/**/*.ts"],
-      exclude: ["src/lib/**/*.test.ts", "src/lib/seed-data.ts", "src/lib/agents/llm.ts", "src/lib/ledger/anchor.ts", "src/lib/orchestrator/worker.ts"],
+      exclude: ["src/lib/**/*.test.ts", "src/lib/fixtures/**", "src/lib/agents/llm.ts", "src/lib/ledger/anchor.ts", "src/lib/orchestrator/worker.ts"],
       thresholds: { lines: 80, functions: 80, statements: 80, branches: 70 },
     },
   },

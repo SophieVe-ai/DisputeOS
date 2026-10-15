@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { LedgerEntry, VerificationReport } from "@/lib/ledger/ledger";
 import { api, usePoll } from "./api";
 import { shortHash, time } from "./format";
+import { actorName } from "@/lib/ledger/describe";
 import { StatusBadge } from "./StatusBadge";
 import { IconChain, IconScan, IconSkull } from "./ui/icons";
 
@@ -66,7 +67,8 @@ export function LedgerPanel({ caseId, demoMode }: { caseId?: string; demoMode: b
           <span className="grid h-7 w-7 place-items-center rounded border border-line-2 text-ink-2"><IconChain size={14} /></span>
           <div>
             <h3 id="ledger-title" className="text-[14px] font-medium">Tamper-evident audit ledger</h3>
-            <p className="mt-1 max-w-2xl text-[13px] text-ink-2">Each action is SHA-256 hash-chained and anchored to the AuditLog contract. Agents can append to the log but never edit it.</p>
+            <p className="mt-1 max-w-2xl text-[13px] text-ink-2">Every agent action and human decision, in order. Each one is fingerprinted, linked to the one before it and written to the AuditLog smart contract, so nobody (agents included) can quietly change it later.</p>
+            <p className="mt-2 max-w-2xl text-[12px] text-ink-3"><span className="text-ink-2">Verify against chain</span> re-checks every entry against the blockchain.{caseId && demoMode ? <> <span className="text-ink-2">Simulate tampering</span> secretly edits one entry in the database so you can watch verification catch it.</> : null}</p>
           </div>
         </div>
         <div className="ml-auto flex gap-2">
@@ -96,7 +98,7 @@ export function LedgerPanel({ caseId, demoMode }: { caseId?: string; demoMode: b
         <table className="w-full text-[12px]">
           <thead className="sticky top-0 z-[5] bg-panel text-left">
             <tr>
-              {["#", "Time", "Actor", "Action", "Entry hash", "Anchor", ...(report ? ["Verification"] : [])].map((h) => (
+              {["#", "Time", "Who", "What happened", "On-chain", ...(report ? ["Verification"] : [])].map((h) => (
                 <th key={h} className="label px-3 py-2.5 font-medium">{h}</th>
               ))}
             </tr>
@@ -109,9 +111,11 @@ export function LedgerPanel({ caseId, demoMode }: { caseId?: string; demoMode: b
                 <tr key={e.seq} className={`border-t border-line transition-colors ${bad ? "glitch bg-bad/[.07]" : e.seq === tamperedSeq && !report ? "bg-warn/[.05]" : ""}`}>
                   <td className="px-3 py-2 font-mono tabular-nums text-ink-3">{e.seq}</td>
                   <td className="whitespace-nowrap px-3 py-2 font-mono text-ink-3">{time(e.createdAt)}</td>
-                  <td className={`whitespace-nowrap px-3 py-2 font-mono ${e.actor.startsWith("human:") ? "text-warn" : e.actor.startsWith("agent:") ? "text-info" : "text-ink-2"}`}>{e.actor}</td>
-                  <td className="px-3 py-2 font-mono">{e.action}</td>
-                  <td className="px-3 py-2 font-mono text-ink-3" title={e.entryHash}>{shortHash(e.entryHash)}</td>
+                  <td className={`whitespace-nowrap px-3 py-2 ${e.actor.startsWith("human:") ? "text-warn" : e.actor.startsWith("agent:") ? "text-info" : "text-ink-2"}`}>{actorName(e.actor)}</td>
+                  <td className="px-3 py-2">
+                    <div className="text-[12.5px] leading-snug text-ink">{e.description}</div>
+                    <div className="mt-0.5 font-mono text-[10px] text-ink-3" title={e.entryHash}>{e.action} · {shortHash(e.entryHash)}</div>
+                  </td>
                   <td className="px-3 py-2" title={e.anchor.txHash ? `tx ${e.anchor.txHash} · block ${e.anchor.blockNumber}` : (e.anchor.error ?? "")}>
                     <StatusBadge status={e.anchor.status} label={e.anchor.status === "anchored" && e.anchor.blockNumber ? `block ${e.anchor.blockNumber}` : e.anchor.status} />
                   </td>

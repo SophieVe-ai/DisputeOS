@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "meridian",
+    "name": "Atlas Office Interiors v Meridian Lettings",
+    "description": "Office fit-out. Two chairs genuinely missing, plus a pricing complaint that doesn't stand up.",
+    "documents": 7
+  },
+  {
+    "slug": "kestrel",
+    "name": "Harbour Joinery v Kestrel Developments",
+    "description": "Kitchen units. A damage claim raised in time and a quality complaint raised far too late.",
+    "documents": 7
+  },
+  {
+    "slug": "lumen",
+    "name": "Northbank Print v Lumen Events",
+    "description": "Event print run. A clean, signed-for debt the customer keeps deferring.",
+    "documents": 5
+  },
+  {
+    "slug": "ashford",
+    "name": "Peak Catering v Ashford Hotel Group",
+    "description": "Catering consumables. We overcharged and short-delivered: the agents should say so.",
+    "documents": 4
+  }
+]

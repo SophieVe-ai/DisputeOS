@@ -1,105 +1,144 @@
 "use client";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/components/api";
-import { DOC_KINDS, type DocKind } from "@/lib/types";
-import { IconArrowRight, IconPlus, IconX } from "@/components/ui/icons";
+import { Analysing } from "@/components/intake/Analysing";
+import { Dropzone } from "@/components/intake/Dropzone";
+import { draftFrom, ReviewPanel, type CaseDraft } from "@/components/intake/ReviewPanel";
+import { SAMPLES_ROOT, type IntakePreview, type PreviewDocument } from "@/components/intake/types";
 import { Reveal } from "@/components/ui/motion";
 
-interface DraftDoc { kind: DocKind; title: string; content: string; docDate: string }
+type Stage = "select" | "analysing" | "review";
 
-const TEMPLATES: Record<DocKind, string> = {
-  contract: "Contract reference: \nContract date: 2026-01-31\nPayment terms: 30 days from invoice\nInspection period: 5 working days from delivery\n- Item name | qty 10 | £100.00 per unit",
-  invoice: "Invoice number: \nInvoice date: 2026-02-01\nDue date: 2026-03-03\n- Item name | qty 10 | £100.00\nTotal due: £1,000.00",
-  delivery_note: "Delivery date: 2026-01-31\n- Item name | qty 10\nSigned by: ",
-  payment: "Payment date: \nAmount paid: £\nReference: ",
-  correspondence: "From: Name (Company)\nDate: 2026-02-10\n\nMessage text…",
-  other: "",
-};
+const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
-const emptyDoc = (kind: DocKind): DraftDoc => ({ kind, title: "", content: TEMPLATES[kind], docDate: "" });
+async function loadSamplePack(slug: string): Promise<File[]> {
+  const base = `${SAMPLES_ROOT}/${slug}`;
+  const res = await fetch(`${base}/manifest.json`);
+  if (!res.ok) throw new Error("Sample pack is unavailable");
+  const { files } = (await res.json()) as { files: string[] };
+  return Promise.all(
+    files.map(async (name) => {
+      const blob = await (await fetch(`${base}/${name}`)).blob();
+      return new File([blob], name, { type: "text/plain" });
+    }),
+  );
+}
 
-export default function NewCasePage() {
+export default function UploadCasePage() {
   const router = useRouter();
-  const [form, setForm] = useState({ title: "", creditor: "", debtor: "", debtorEmail: "", claimed: "", summary: "" });
-  const [docs, setDocs] = useState<DraftDoc[]>([emptyDoc("contract"), emptyDoc("invoice"), emptyDoc("delivery_note")]);
+  const [stage, setStage] = useState<Stage>("select");
+  const [files, setFiles] = useState<File[]>([]);
+  const [docs, setDocs] = useState<PreviewDocument[]>([]);
+  const [draft, setDraft] = useState<CaseDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
 
-  const setDoc = (i: number, patch: Partial<DraftDoc>) => setDocs(docs.map((d, n) => (n === i ? { ...d, ...patch } : d)));
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function analyse(selected: File[]) {
     setError(null);
-    const claimed = Math.round(Number(form.claimed.replace(/[£,]/g, "")) * 100);
-    if (!Number.isFinite(claimed) || claimed <= 0) return setError("Enter the amount claimed in pounds.");
-    setBusy(true);
+    setFiles(selected);
+    setStage("analysing");
+    const form = new FormData();
+    selected.forEach((f) => form.append("files", f));
     try {
-      const created = await api<{ id: string }>("/api/cases", {
-        method: "POST",
-        body: JSON.stringify({
-          title: form.title,
-          creditor: form.creditor,
-          debtor: form.debtor,
-          debtorEmail: form.debtorEmail || null,
-          claimedAmountPence: claimed,
-          summary: form.summary,
-          documents: docs.filter((d) => d.content.trim()).map((d) => ({ ...d, title: d.title || d.kind, docDate: d.docDate || null })),
-        }),
-      });
-      router.push(`/cases/${created.id}`);
+      const [preview] = await Promise.all([
+        api<IntakePreview>("/api/intake/preview", { method: "POST", body: form }),
+        new Promise((r) => setTimeout(r, 1400)), // let the analysis animation read
+      ]);
+      setDocs(preview.documents);
+      setDraft(draftFrom(preview.inferred));
+      setStage("review");
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-      setBusy(false);
+      setError(errorText(err));
+      setStage("select");
     }
   }
 
-  const field = (key: keyof typeof form, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (
-    <label className="block">
-      <span className="label">{label}</span>
-      <input className="input mt-1.5" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} {...props} />
-    </label>
-  );
+  async function loadSample(slug: string) {
+    try {
+      await analyse(await loadSamplePack(slug));
+    } catch (err) {
+      setError(errorText(err));
+    }
+  }
+
+  async function submit() {
+    if (!draft) return;
+    const claimed = Math.round(Number(draft.claimed.replace(/[£,\s]/g, "")) * 100);
+    if (!Number.isFinite(claimed) || claimed <= 0) return setError("Enter the amount claimed in pounds.");
+    if (!draft.creditor.trim() || !draft.debtor.trim()) return setError("Enter both the creditor and the debtor.");
+    setError(null);
+    try {
+      setProgress("Opening case");
+      const created = await api<{ id: string }>("/api/cases", {
+        method: "POST",
+        body: JSON.stringify({
+          title: draft.title,
+          creditor: draft.creditor,
+          debtor: draft.debtor,
+          debtorEmail: draft.debtorEmail || null,
+          claimedAmountPence: claimed,
+          summary: draft.summary,
+          documents: docs.map(({ kind, title, content, docDate }) => ({ kind, title: title || kind, content, docDate })),
+        }),
+      });
+      setProgress("Starting agents");
+      const requestedBy = localStorage.getItem("disputeos.approver") || "operator";
+      await api(`/api/cases/${created.id}/runs`, { method: "POST", body: JSON.stringify({ requestedBy }) });
+      router.push(`/cases/${created.id}`);
+    } catch (err) {
+      setError(errorText(err));
+      setProgress(null);
+    }
+  }
 
   return (
-    <form onSubmit={submit} className="space-y-8">
-      <Reveal as="header" className="border-b border-line pb-8">
-        <span className="label">New case</span>
-        <h1 className="mt-3 text-[34px] font-normal tracking-[-0.03em]">Open a dispute</h1>
-        <p className="mt-3 max-w-2xl text-[14px] text-ink-2">Describe the claim and attach the case file. The agents take it from there; nothing is sent without your approval.</p>
-      </Reveal>
-      <Reveal as="section" delay={80} className="card frame grid gap-5 p-6 md:grid-cols-2">
-        {field("title", "Case title", { required: true, minLength: 3 })}
-        {field("claimed", "Amount claimed (£)", { required: true, inputMode: "decimal", placeholder: "12,920.00" })}
-        {field("creditor", "Your company (creditor)", { required: true })}
-        {field("debtor", "Debtor company", { required: true })}
-        {field("debtorEmail", "Debtor accounts email", { type: "email" })}
-        {field("summary", "Short summary")}
-      </Reveal>
-      <Reveal as="section" delay={160} className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-[14px] font-medium">Documents <span className="ml-2 font-mono text-[10.5px] text-ink-3">{docs.length}</span></h2>
-          <div className="flex flex-wrap gap-2">
-            {DOC_KINDS.filter((k) => k !== "other").map((k) => (
-              <button key={k} type="button" className="btn btn-ghost text-xs" onClick={() => setDocs([...docs, emptyDoc(k)])}><IconPlus size={12} /> {k.replace("_", " ")}</button>
+    <div className="space-y-10">
+      <header className="grid items-center gap-8 border-b border-line pb-10 lg:grid-cols-[1fr_420px]">
+        <div>
+          <Reveal><span className="label">New case</span></Reveal>
+          <Reveal delay={80}><h1 className="mt-3 text-[40px] font-normal leading-tight tracking-[-0.035em]">Upload a case file</h1></Reveal>
+          <Reveal delay={160}>
+            <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-ink-2">
+              Drop in whatever you have. DisputeOS reads each document, works out what it is, and infers who owes whom and how much.
+              Check the details, then start the agents: you&apos;ll watch them work, and every step land on-chain, in real time.
+            </p>
+          </Reveal>
+          <Reveal delay={240} className="mt-6 flex flex-wrap gap-6 font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-3">
+            {["01 Upload", "02 Review", "03 Agents run", "04 You approve"].map((s, i) => (
+              <span key={s} className={i === (stage === "review" ? 1 : 0) ? "text-ink" : ""}>{s}</span>
             ))}
-          </div>
+          </Reveal>
         </div>
-        <p className="font-mono text-[11px] text-ink-3">Use one line per item, in the form <code>- Item | qty N | £price</code>. With an Anthropic API key, the Evidence agent also reads free-text correspondence.</p>
-        {docs.map((d, i) => (
-          <div key={i} className="card reveal grid gap-3 p-4 md:grid-cols-[10rem_1fr_9rem_auto]">
-            <select aria-label="Document type" className="input" value={d.kind} onChange={(e) => setDoc(i, { kind: e.target.value as DocKind })}>
-              {DOC_KINDS.map((k) => <option key={k} value={k}>{k.replace("_", " ")}</option>)}
-            </select>
-            <input aria-label="Document title" className="input" placeholder="Title" value={d.title} onChange={(e) => setDoc(i, { title: e.target.value })} />
-            <input aria-label="Document date" className="input" type="date" value={d.docDate} onChange={(e) => setDoc(i, { docDate: e.target.value })} />
-            <button type="button" className="btn btn-bad" onClick={() => setDocs(docs.filter((_, n) => n !== i))} aria-label="Remove document"><IconX size={14} /></button>
-            <textarea aria-label="Document content" className="input font-mono text-xs md:col-span-4" rows={6} value={d.content} onChange={(e) => setDoc(i, { content: e.target.value })} />
-          </div>
-        ))}
-      </Reveal>
-      {error && <p role="alert" className="text-sm text-bad">{error}</p>}
-      <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? "Creating…" : <>Create case <IconArrowRight size={14} /></>}</button>
-    </form>
+        <Reveal delay={200} className="relative hidden aspect-[4/3] overflow-hidden rounded-md border border-line lg:block">
+          <Image src="/images/upload-docs.jpg" alt="" fill sizes="420px" className="kenburns object-cover" />
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-bg/80 via-transparent to-transparent" />
+        </Reveal>
+      </header>
+
+      {error && <p role="alert" className="reveal rounded border border-bad/40 bg-bad/[.05] px-4 py-3 text-[13px] text-bad">{error}</p>}
+
+      {stage === "select" && <Reveal delay={300}><Dropzone onFiles={analyse} onSample={loadSample} busy={false} /></Reveal>}
+      {stage === "analysing" && <Analysing files={files} />}
+      {stage === "review" && draft && (
+        <ReviewPanel
+          docs={docs}
+          draft={draft}
+          onDraft={setDraft}
+          onDoc={(i, patch) => setDocs(docs.map((d, n) => (n === i ? { ...d, ...patch } : d)))}
+          onRemove={(i) => setDocs(docs.filter((_, n) => n !== i))}
+          onReset={() => {
+            setStage("select");
+            setDocs([]);
+            setDraft(null);
+            setError(null);
+          }}
+          onSubmit={submit}
+          submitting={progress !== null}
+          progress={progress}
+        />
+      )}
+    </div>
   );
 }

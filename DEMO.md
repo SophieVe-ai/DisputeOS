@@ -3,39 +3,43 @@
 **Setup (before you present):** `npm install && npm run demo`, then open <http://localhost:3000>.
 Check the header shows **hardhat-local · 0x5FbD…** in green. To show Claude live, set `ANTHROPIC_API_KEY` in `.env.local` first. Otherwise the header shows *Deterministic engine*, and the flow is identical.
 
-To reset between run-throughs, press Ctrl+C and run `npm run demo` again.
-
 ---
 
-### 1. The problem (20s), dashboard
+The app starts **empty**: there are no pre-loaded cases. Everything on screen is created live during the demo, from documents you upload. Four sample case files ship in `public/samples/` so you don't need your own.
+
+### 1. The problem (20s): home
 > "UK SMEs were owed about £26.5bn in late payments last year. Recovering it is slow, manual and adversarial. DisputeOS is an AI-native collections and disputes team."
 
-Point at the animated system topology (each agent writes into `AuditLog.sol`, which mines blocks), the three seeded cases, and the **On-chain write log** already showing the intake entries mined.
+Point at the hero: the crosshair reads the live block number from the chain. The on-chain write log next to the (empty) disputes table is waiting for its first write.
 
-### 2. Run the agents (60s): *Kitchen units — Kestrel Developments*
-Open the case and click **Run agents**. While the pipeline lights up, keep an eye on the **On-chain write log** on the right: every agent action appears as it's written (`sha256`, then `eth_sendTransaction … awaiting block`), then flips to **mined** with its real tx hash, block number, gas used and the decoded `EntryAnchored` event read back from the contract. New blocks slide into the block strip.
-- **Evidence** reviews 7 documents (each document's hash goes on the ledger) and finds two debtor complaints.
-- **Reconciliation** checks every line against the contract and delivery note: £12,920 is owed after the £5,000 part payment. "No LLM touches the money."
-- **Challenge** argues the debtor's side. It **upholds** the 3 damaged units (reported 3 days after delivery, inside the 5-day inspection window, so –£1,155) and **rebuts** the "poor quality" complaint (78 days late, deemed accepted). Defensible: **£11,765** at 85% confidence.
-- **Resolution** drafts a letter before action (with statutory interest), a settlement offer and a court-claim pack.
+### 2. Upload a case file (40s): *Upload*
+Click **Upload a case file** and pick the sample **Harbour Joinery v Kestrel Developments**. Seven raw files (contract, delivery note, invoice, remittance, three emails) are read and classified, each with a confidence score, and the parties and the £12,920 balance are filled in. Correct anything you like, then click **Create case & run agents**.
 
-### 3. Human in control (30s)
-In the **Approval gate**, enter your name, open the letter (a real, compliant letter before action) and click **Approve & execute**. Reject the court pack: "not yet."
+### 3. Watch the agents, and the chain (60s)
+You land on the case. The banner at the top says what's happening; the pipeline lights up step by step, and every action appears in the **On-chain write log** in plain English ("Reviewed “Invoice HJ-1042” (invoice) and recorded its fingerprint") with a ✓ and its block number once mined. Flip **Technical** to show the hashes, transaction, gas and the decoded `EntryAnchored` event read back from the contract.
+- **Evidence** reviews 7 documents and finds two debtor complaints.
+- **Reconciliation** checks every line: £12,920 owed after the £5,000 part payment. "No LLM touches the money."
+- **Challenge** argues the debtor's side. It **upholds** the 3 damaged units (reported inside the 5-day inspection window, −£1,155) and **rebuts** the "poor quality" complaint (78 days late). Defensible: **£11,765** at 85% confidence.
+- **Resolution** drafts a letter before action, a settlement offer and a court-claim pack.
+
+### 4. Human in control (30s)
+The banner now says the drafted actions need your decision. Enter your name in the **Approval gate**, open the letter and **Approve & execute**. Reject the court pack: "not yet." Both decisions appear in the chain log under your name.
 > "Agents never act on their own. Every decision is signed by a named person and recorded on-chain."
 
-### 4. Honesty as a feature (20s): *Catering consumables — Ashford Hotel Group*
-Run it. The Challenge agent finds **we** overcharged (£4.20 vs £3.95 contract price) and short-delivered 4 cases. The first proposed action is a **£614 credit note**, before demanding the rest.
+### 5. Honesty as a feature (20s)
+Upload the **Peak Catering v Ashford Hotel Group** sample. The Challenge agent finds **we** overcharged (£4.20 vs £3.95 contract price) and short-delivered 4 cases. The first proposed action is a **£614 credit note**, before demanding the rest.
 > "It tells you when *you're* wrong, before the court does."
 
-### 5. Tamper-proof agent logs (40s): back to Kestrel
-Scroll to **Tamper-evident audit ledger** and click **Verify against chain**: green, every entry matches its on-chain anchor.
-Click **Simulate tampering**: an insider rewrites the Challenge agent's conclusion straight in the database and even recomputes the hash.
-Click **Verify against chain** again: **red**. The rewritten entry no longer matches its immutable anchor, and the next entry's chain link is broken. The on-chain write log shows the same thing live: that entry now reads **✕ MISMATCH ledger 0x… ≠ chain 0x…**.
+### 6. Tamper-proof agent logs (40s): back to Kestrel
+Scroll to the **Audit ledger**. Every entry has a one-line description of what happened. Click **Verify against chain**: green. Click **Simulate tampering** (an insider rewrites the Challenge agent's conclusion in the database and recomputes its hash), then **Verify against chain** again: **red**. The chain log marks the entry **✕ altered**.
 > "An agent, or anyone else, can't quietly change what it decided."
+
+### 7. Measured, not asserted (20s): *Evals*
+Click **Run the eval**. Five gold-labelled disputes, one built from raw uploaded files, run in an isolated sandbox. The gauge shows the overall score (70% optimisation, 30% efficiency); each scenario lists expected vs actual, and the result is itself anchored on-chain.
 
 ### Close (10s)
 > "Evidence, reconciliation, challenge, resolution, then human approval, with a cryptographic audit trail. DisputeOS: get paid, provably fairly."
 
 ---
 
-**Backup if anything misbehaves:** the app works with the chain offline (entries show *pending* and anchor once the chain is back), and with no Claude key (deterministic engine). `node scripts/smoke-e2e.mjs` runs the whole flow headless.
+**Backup if anything misbehaves:** the app works with the chain offline (entries show *writing* and anchor once the chain is back), and with no Claude key (deterministic engine). `node scripts/smoke-e2e.mjs` runs the whole flow headless. To reset between run-throughs, press Ctrl+C and run `npm run demo` again.

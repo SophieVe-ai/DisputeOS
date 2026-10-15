@@ -37,13 +37,30 @@ Requires Node.js 22+.
 
 ```bash
 npm install
-npm run demo          # resets & seeds the DB, starts a local EVM chain, deploys AuditLog, starts the app
+npm run demo          # resets the DB (empty), starts a local EVM chain, deploys AuditLog, starts the app
 open http://localhost:3000
 ```
 
 Optional: `cp .env.example .env.local` and set `ANTHROPIC_API_KEY` to run the agents on **Claude (`claude-opus-5-5`)**. Without a key, the same pipeline runs on the deterministic engine, so the demo never depends on network access. If a Claude call fails or is refused, that step falls back to the deterministic result and the fallback is logged to the ledger.
 
 See **[DEMO.md](DEMO.md)** for the 3-minute judge walkthrough.
+
+## Upload a case file
+
+`/cases/new` takes raw documents (`.txt`, `.md`, `.eml`, `.csv`, `.pdf`; up to 15 files, 2 MB each). The server extracts the text (PDFs via `unpdf`), classifies each document (contract, invoice, delivery note, payment, correspondence) with a confidence score, and infers the creditor, debtor, debtor email and outstanding balance. You review and correct anything, then **Create case & run agents** opens the case, starts the pipeline and takes you to the live view. Nothing is written until you confirm. There is no pre-loaded data: four sample case files live in `public/samples/` (regenerate with `npx tsx scripts/build-sample-packs.ts`).
+
+Every ledger entry carries a one-line plain-English description (`src/lib/ledger/describe.ts`), shown in the on-chain write log and the audit ledger.
+
+## Agent eval
+
+`npm run eval` (or the **Evals** page) runs five gold-labelled disputes end-to-end, one of them built from the raw sample upload, each in its own in-memory database and chain. The expected answers are derived by hand from the contracts, delivery records and statute (Limitation Act 1980, Late Payment Act 1998), not from the agents' output.
+
+| Axis | Weight | What is scored |
+| --- | --- | --- |
+| **Optimisation** | 70% | Supported principal, days overdue, defensible principal (continuous accuracy), recommendation, the verdict on each debtor argument, the proposed actions and their order, and on-chain verification of the audit trail |
+| **Efficiency** | 30% | Pipeline latency against a per-engine budget, first-attempt success (no retries), model fallbacks, ledger writes against a proportionate budget |
+
+The result is a single percentage. The web UI runs the eval in a child process, so it never touches live cases, and anchors every result on-chain as an `eval.completed` ledger entry. CI fails if the score drops below 90% (`npm run eval -- --min 90`).
 
 ## Long-running agents platform
 
@@ -72,6 +89,7 @@ scripts/               deploy, DB reset, E2E smoke test
 | Command | What it does |
 | --- | --- |
 | `npm run demo` | Full local stack: reset DB, start chain, deploy contract, start dev server |
+| `npm run eval` | Agent eval: optimisation + efficiency score across gold scenarios (`-- --json`, `-- --min 90`) |
 | `npm run verify` | Lint, typecheck, unit tests with coverage, contract tests, production build |
 | `npm test` / `npm run test:coverage` | Vitest unit and integration tests (gate: ≥80% lines) |
 | `npm run test:contracts` | Hardhat tests for `AuditLog.sol` |

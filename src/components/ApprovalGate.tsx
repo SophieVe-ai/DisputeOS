@@ -26,7 +26,7 @@ export function ApprovalGate({ proposals, pinRequired, onDecided }: { proposals:
         </div>
         <label className="ml-auto block w-52">
           <span className="label">Approver</span>
-          <input className="input mt-1.5" value={approver} onChange={(e) => setApprover(e.target.value)} placeholder="e.g. Megan Hughes" />
+          <input className="input mt-1.5" value={approver} onChange={(e) => setApprover(e.target.value)} placeholder="Your full name" />
         </label>
         {pinRequired && (
           <label className="block w-28">

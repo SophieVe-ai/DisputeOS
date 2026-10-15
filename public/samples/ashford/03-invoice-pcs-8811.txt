@@ -1,0 +1,7 @@
+INVOICE
+Invoice number: PCS-8811
+Invoice date: 2026-07-28
+Due date: 2026-08-27
+- Compostable takeaway box | qty 2000 | £4.20
+- Recycled napkin case | qty 40 | £28.50
+Total due: £9,540.00

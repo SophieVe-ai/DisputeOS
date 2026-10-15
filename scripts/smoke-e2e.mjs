@@ -1,11 +1,17 @@
 // End-to-end smoke test against a running stack (chain + deployed contract + Next server).
-// Exercises the critical judge flow: run agents → human approval → on-chain verification → tamper detection.
+// Exercises the critical flow: upload documents → run agents → human approval →
+// on-chain verification → tamper detection. The app starts empty, so the case comes
+// from the Ashford sample pack through the real intake API.
+import fs from "node:fs";
+import path from "node:path";
+
 const BASE = process.env.BASE_URL ?? "http://127.0.0.1:3000";
-const CASE_ID = "case-peak-ashford";
+const PACK_DIR = path.join(process.cwd(), "public", "samples", "ashford");
 const TIMEOUT_MS = 90_000;
 
 async function call(path, init) {
-  const res = await fetch(`${BASE}${path}`, { ...init, headers: { "content-type": "application/json" } });
+  const isForm = init?.body instanceof FormData;
+  const res = await fetch(`${BASE}${path}`, { ...init, headers: isForm ? undefined : { "content-type": "application/json" } });
   const body = await res.json();
   if (!body.success) throw new Error(`${path} → ${res.status}: ${body.error}`);
   return body.data;
@@ -33,6 +39,20 @@ async function main() {
   await waitFor(async () => (await call("/api/system")).chain.connected, "chain connection");
   assert(true, "app is up and connected to the AuditLog contract");
 
+  const { files } = JSON.parse(fs.readFileSync(path.join(PACK_DIR, "manifest.json"), "utf8"));
+  const form = new FormData();
+  for (const f of files) form.append("files", new Blob([fs.readFileSync(path.join(PACK_DIR, f))], { type: "text/plain" }), f);
+  const preview = await call("/api/intake/preview", { method: "POST", body: form });
+  assert(preview.documents.length === files.length && preview.inferred.claimedAmountPence === 954_000, `uploaded ${files.length} documents; inferred a £9,540 balance`);
+
+  const created = await call("/api/cases", {
+    method: "POST",
+    body: JSON.stringify({
+      ...preview.inferred,
+      documents: preview.documents.map(({ kind, title, content, docDate }) => ({ kind, title, content, docDate })),
+    }),
+  });
+  const CASE_ID = created.id;
   await call(`/api/cases/${CASE_ID}/runs`, { method: "POST", body: JSON.stringify({ requestedBy: "CI Bot" }) });
   const detail = await waitFor(async () => {
     const d = await call(`/api/cases/${CASE_ID}`);

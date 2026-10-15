@@ -12,6 +12,7 @@ export interface FeedEntry {
   caseId: string | null;
   actor: string;
   action: string;
+  description: string;
   createdAt: string;
   entryHash: string;
   prevHash: string;
@@ -57,6 +58,7 @@ export async function chainFeed(opts: { caseId?: string; limit?: number } = {}):
       caseId: row.caseId,
       actor: row.actor,
       action: row.action,
+      description: row.description,
       createdAt: row.createdAt,
       entryHash: row.entryHash,
       prevHash: row.prevHash,

@@ -3,6 +3,7 @@
 // orchestrator/context.ts) — they cannot read keys, rewrite rows or touch the chain.
 import { getDb, nowIso } from "../db";
 import { anchorError, getAnchor, resetAnchor } from "./anchor-registry";
+import { describeEntry } from "./describe";
 import { canonicalJson, computeEntryHash, GENESIS_HASH, sha256Hex } from "./hash";
 
 export interface AppendInput {
@@ -21,6 +22,8 @@ export interface LedgerEntry {
   runId: string | null;
   actor: string;
   action: string;
+  /** Plain-English summary of what this entry records. */
+  description: string;
   payload: unknown;
   payloadHash: string;
   prevHash: string;
@@ -60,13 +63,15 @@ const SELECT_ENTRIES = `
   FROM ledger_entries e LEFT JOIN ledger_anchors a ON a.seq = e.seq`;
 
 function toEntry(row: EntryRow): LedgerEntry {
+  const payload = JSON.parse(row.payload_json) as unknown;
   return {
     seq: row.seq,
     caseId: row.case_id,
     runId: row.run_id,
     actor: row.actor,
     action: row.action,
-    payload: JSON.parse(row.payload_json),
+    description: describeEntry({ actor: row.actor, action: row.action, payload }),
+    payload,
     payloadHash: row.payload_hash,
     prevHash: row.prev_hash,
     entryHash: row.entry_hash,

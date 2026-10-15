@@ -1,10 +1,11 @@
-// Fictional UK SME demo cases. Each showcases a different agent behaviour:
+// Fictional UK SME case fixtures for tests, the agent eval and the uploadable sample packs.
+// They are never loaded into the running app. Each showcases a different agent behaviour:
 //  1. Harbour Joinery — partially valid damage claim + a late, rebutted quality complaint.
 //  2. Northbank Print — clean overdue debt, no defence → full claim + court pack.
 //  3. Peak Catering   — WE overcharged and short-delivered → credit note before demanding the rest.
-import type { NewCaseInput } from "./repo/cases";
+import type { NewCaseInput } from "../repo/cases";
 
-export const DEMO_CASES: (NewCaseInput & { id: string })[] = [
+export const FIXTURE_CASES: (NewCaseInput & { id: string })[] = [
   {
     id: "case-harbour-kestrel",
     reference: "DOS-2026-0141",

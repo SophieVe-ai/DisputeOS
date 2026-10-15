@@ -1,0 +1,10 @@
+{
+  "name": "Peak Catering v Ashford Hotel Group",
+  "description": "Catering consumables. We overcharged and short-delivered: the agents should say so.",
+  "files": [
+    "01-framework-supply-agreement-pcs-ahg-07.txt",
+    "02-delivery-note-pcs-d-3307.txt",
+    "03-invoice-pcs-8811.txt",
+    "04-email-from-ashford-invoice-queried.eml"
+  ]
+}

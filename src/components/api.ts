@@ -4,9 +4,11 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 interface Envelope<T> { success: boolean; data: T | null; error: string | null }
 
 export async function api<T>(url: string, init?: RequestInit): Promise<T> {
+  const isForm = init?.body instanceof FormData;
   const res = await fetch(url, {
     ...init,
-    headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
+    // Let the browser set the multipart boundary for uploads.
+    headers: isForm ? init?.headers : { "content-type": "application/json", ...(init?.headers ?? {}) },
     cache: "no-store",
   });
   let body: Envelope<T>;

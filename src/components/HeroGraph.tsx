@@ -14,8 +14,8 @@ const NODES = [
   { x: 417, label: "Resolve", Icon: IconResolution },
   { x: 534, label: "Approve", Icon: IconGate, human: true },
 ];
-// Deterministic pseudo-hashes so server and client render identically.
-const BLOCKS = Array.from({ length: 12 }, (_, i) => ({ x: i * BLOCK_PITCH - 40, tag: ((i * 2654435761) >>> 0).toString(16).slice(0, 4) }));
+// Decorative conveyor: blank blocks only. Real block numbers live in the on-chain log.
+const BLOCKS = Array.from({ length: 12 }, (_, i) => ({ x: i * BLOCK_PITCH - 40 }));
 
 const slot = (i: number) => {
   const a = i / NODES.length;
@@ -94,7 +94,8 @@ export function HeroGraph() {
             <g key={i} transform={`translate(${blk.x} ${CHAIN_Y})`}>
               {i < BLOCKS.length - 1 && <line x1="44" x2={BLOCK_PITCH} y1="13" y2="13" stroke="var(--border-2)" />}
               <rect width="44" height="26" rx="3" fill="var(--panel-2)" stroke="var(--border-2)" />
-              <text x="22" y="16.5" textAnchor="middle" className="fill-ink-3 font-mono" fontSize="8">0x{blk.tag}</text>
+              <line x1="9" x2="35" y1="10" y2="10" stroke="var(--ink-3)" strokeOpacity=".5" />
+              <line x1="9" x2="27" y1="16" y2="16" stroke="var(--ink-3)" strokeOpacity=".5" />
             </g>
           ))}
         </g>
